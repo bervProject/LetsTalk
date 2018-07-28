@@ -1,3 +1,15 @@
 <resources>
-    <string name="app_name">LetsTalk</string>
+    <string name="app_name">Lets Talk</string>
+    <string name="title_activity_lets_talk">Lets Talk</string>
+    <string name="action_settings">Settings</string>
+    <string name="section_format">Hello World from section: %1$d</string>
+    <string name="listen">Mendengar</string>
+    <string name="talk">Berbicara</string>
+    <string name="instruction_listen">Tekan tombol mic untuk mulai berbicara</string>
+    <string name="label_box_result_listen">Hasil terjemahan</string>
+    <string name="label_box_result_talk">Hasil gerakan</string>
+    <string name="button_talk">Mulai Berbicara</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>

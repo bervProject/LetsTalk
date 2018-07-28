@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".fragment.TalkFragment">
+
+    <ImageView
+        android:id="@+id/logoHeaderTalk"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="8dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="40dp"
+        android:src="@drawable/logo"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <Button
+        android:id="@+id/buttonTalk"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="8dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="44dp"
+        android:background="@color/buttonColor"
+        android:paddingBottom="10dp"
+        android:paddingLeft="15dp"
+        android:paddingRight="15dp"
+        android:paddingTop="10dp"
+        android:text="@string/button_talk"
+        android:textAllCaps="false"
+        android:textColor="@color/white"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.502"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/logoHeaderTalk" />
+
+    <TextView
+        android:id="@+id/labelBoxTalk"
+        android:layout_width="wrap_content"
+        android:layout_height="0dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="48dp"
+        android:text="@string/label_box_result_talk"
+        android:textSize="16sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.074"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/buttonTalk" />
+
+    <EditText
+        android:id="@+id/resultTalkBox"
+        android:layout_width="match_parent"
+        android:layout_height="100dp"
+        android:layout_marginEnd="30dp"
+        android:layout_marginStart="30dp"
+        android:layout_marginTop="8dp"
+        android:padding="10dp"
+        android:textAlignment="viewStart"
+        android:background="@color/boxColor"
+        android:textColor="@color/textColorBox"
+        android:textSize="16sp"
+        android:enabled="true"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/labelBoxTalk" />
+
+    <ImageButton
+        android:id="@+id/deleteResultTalkButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="4dp"
+        android:layout_marginEnd="8dp"
+        android:padding="2dp"
+        android:background="@color/boxColor"
+        android:src="@drawable/ic_delete_red_24dp"
+        app:layout_constraintBottom_toBottomOf="@id/resultTalkBox"
+        app:layout_constraintEnd_toEndOf="@id/resultTalkBox" />
+
+    <ImageButton
+        android:id="@+id/talkButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="8dp"
+        android:background="@drawable/background_volume"
+        android:padding="2dp"
+        android:src="@drawable/ic_volume_up_white_24dp"
+        app:layout_constraintBottom_toBottomOf="@id/deleteResultTalkButton"
+        app:layout_constraintEnd_toStartOf="@id/deleteResultTalkButton" />
+
+</android.support.constraint.ConstraintLayout>
