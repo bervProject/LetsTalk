@@ -17,6 +17,7 @@ import android.widget.ImageButton;
 import android.widget.Toast;
 
 import com.letstalk.letstalk.R;
+import com.letstalk.letstalk.TextSendListener;
 
 import java.util.Locale;
 
@@ -29,7 +30,7 @@ import butterknife.OnClick;
  * Use the {@link TalkFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class TalkFragment extends Fragment implements TextToSpeech.OnInitListener {
+public class TalkFragment extends Fragment {
 
     @BindView(R.id.buttonTalk)
     Button talkButton;
@@ -38,9 +39,9 @@ public class TalkFragment extends Fragment implements TextToSpeech.OnInitListene
     @BindView(R.id.deleteResultTalkButton)
     ImageButton deleteButton;
 
-    private TextToSpeech tts;
+    private TextSendListener textSendListener;
 
-   public TalkFragment() {
+    public TalkFragment() {
         // Required empty public constructor
     }
 
@@ -64,14 +65,24 @@ public class TalkFragment extends Fragment implements TextToSpeech.OnInitListene
     }
 
     @Override
-    public void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        tts = new TextToSpeech(getActivity(), this);
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        if (getActivity() instanceof TextSendListener) {
+            textSendListener = (TextSendListener) getActivity();
+        }
     }
 
-    @OnClick(R.id.buttonTalk)
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+    }
+
+    @OnClick(R.id.talkButton)
     void clickTalk() {
-        speakOut();
+        String text = textResult.getText().toString();
+        if (textSendListener != null) {
+            textSendListener.callSpeech(text);
+        }
     }
 
     @OnClick(R.id.deleteResultTalkButton)
@@ -79,38 +90,5 @@ public class TalkFragment extends Fragment implements TextToSpeech.OnInitListene
         textResult.getText().clear();
     }
 
-    private void speakOut() {
-        String text = textResult.getText().toString();
-        tts.speak(text, TextToSpeech.QUEUE_FLUSH,null);
-    }
 
-    @Override
-    public void onDestroy() {
-        if (tts != null) {
-            tts.stop();
-            tts.shutdown();
-        }
-        super.onDestroy();
-    }
-
-    @Override
-    public void onInit(int i) {
-        if (i == TextToSpeech.SUCCESS) {
-            tts.setSpeechRate(0.5f);
-            // int result = tts.setLanguage(new Locale("id","ID"));
-            int result = tts.setLanguage(Locale.ENGLISH);
-            if (result == TextToSpeech.LANG_MISSING_DATA
-                    || result == TextToSpeech.LANG_NOT_SUPPORTED) {
-                Log.e("TTS", "This Language is not supported");
-                Toast.makeText(getActivity(),"This Language is not supported", Toast.LENGTH_SHORT).show();
-            } else {
-                Toast.makeText(getActivity(),"Speak Ready", Toast.LENGTH_SHORT).show();
-                talkButton.setEnabled(true);
-            }
-
-        } else {
-            Toast.makeText(getActivity(),"Initilization Failed!", Toast.LENGTH_SHORT).show();
-            Log.e("TTS", "Initilization Failed!");
-        }
-    }
 }

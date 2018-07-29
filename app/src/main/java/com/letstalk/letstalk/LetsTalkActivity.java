@@ -1,6 +1,9 @@
 package com.letstalk.letstalk;
 
+import android.content.Context;
 import android.graphics.Color;
+import android.media.AudioManager;
+import android.speech.tts.TextToSpeech;
 import android.support.design.widget.TabLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -12,6 +15,7 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -19,10 +23,13 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.letstalk.letstalk.adapter.LetsTalkFragmentAdapter;
 
-public class LetsTalkActivity extends AppCompatActivity {
+import java.util.Locale;
+
+public class LetsTalkActivity extends AppCompatActivity implements TextToSpeech.OnInitListener, TextSendListener {
 
     /**
      * The {@link android.support.v4.view.PagerAdapter} that will provide
@@ -38,6 +45,7 @@ public class LetsTalkActivity extends AppCompatActivity {
      * The {@link ViewPager} that will host the section contents.
      */
     private ViewPager mViewPager;
+    private TextToSpeech tts;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,6 +65,45 @@ public class LetsTalkActivity extends AppCompatActivity {
         tabLayout.addOnTabSelectedListener(new TabLayout.ViewPagerOnTabSelectedListener(mViewPager));
         tabLayout.setTabTextColors(Color.parseColor("#FFFFFF"), Color.parseColor("#616870"));
 
+        tts = new TextToSpeech(this, this);
     }
 
+    @Override
+    public void callSpeech(String text) {
+        AudioManager am = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+        if (am.getRingerMode() == AudioManager.RINGER_MODE_NORMAL) {
+            tts.speak(text, TextToSpeech.QUEUE_ADD, null);
+        } else {
+            Toast.makeText(this, "Please turn off silenced/vibrate mode. Can't play the audio.", Toast.LENGTH_LONG).show();
+        }
+    }
+
+    @Override
+    public void onInit(int i) {
+        if (i == TextToSpeech.SUCCESS) {
+            tts.setSpeechRate(0.5f);
+            // int result = tts.setLanguage(new Locale("id","ID"));
+            int result = tts.setLanguage(Locale.ENGLISH);
+            if (result == TextToSpeech.LANG_MISSING_DATA
+                    || result == TextToSpeech.LANG_NOT_SUPPORTED) {
+                Log.e("TTS", "This Language is not supported");
+                Toast.makeText(this, "This Language is not supported", Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(this, "Speak Ready for all", Toast.LENGTH_SHORT).show();
+            }
+
+        } else {
+            Toast.makeText(this, "Initilization Failed!", Toast.LENGTH_SHORT).show();
+            Log.e("TTS", "Initilization Failed!");
+        }
+    }
+
+    @Override
+    public void onDestroy() {
+        if (tts != null) {
+            tts.stop();
+            tts.shutdown();
+        }
+        super.onDestroy();
+    }
 }

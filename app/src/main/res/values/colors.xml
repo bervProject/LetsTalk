@@ -9,4 +9,5 @@
     <color name="textColorBox">#48525B</color>
     <color name="volumeBackColor">#39AE91</color>
     <color name="micBackColor">#338AA8</color>
+    <color name="red">#FF0000</color>
 </resources>
