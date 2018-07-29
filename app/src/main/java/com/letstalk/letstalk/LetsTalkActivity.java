@@ -71,7 +71,7 @@ public class LetsTalkActivity extends AppCompatActivity implements TextToSpeech.
     @Override
     public void callSpeech(String text) {
         AudioManager am = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
-        if (am.getRingerMode() == AudioManager.RINGER_MODE_NORMAL) {
+        if (am != null && am.getRingerMode() == AudioManager.RINGER_MODE_NORMAL) {
             tts.speak(text, TextToSpeech.QUEUE_ADD, null);
         } else {
             Toast.makeText(this, "Please turn off silenced/vibrate mode. Can't play the audio.", Toast.LENGTH_LONG).show();

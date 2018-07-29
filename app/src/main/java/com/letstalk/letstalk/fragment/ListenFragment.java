@@ -163,26 +163,31 @@ public class ListenFragment extends Fragment implements EasyPermissions.Permissi
     private void recordAudio() {
         File cacheDir = Objects.requireNonNull(getActivity()).getCacheDir();
         File newPath = new File(cacheDir, "letstalk");
+        boolean success = false;
         if (!newPath.exists()) {
-            newPath.mkdir();
+            success = newPath.mkdir();
         }
-        String nameFile = "new-record-" + System.currentTimeMillis();
-        File newAudio = new File(newPath, nameFile);
-        newFilePath = newAudio.getAbsolutePath();
-        mRecorder = new MediaRecorder();
-        mRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
-        mRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
-        mRecorder.setOutputFile(newFilePath);
-        mRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
-        try {
-            mRecorder.prepare();
-        } catch (IOException e) {
-            String message = "Prepare failed :" + e.getMessage();
-            Log.e("Recorder_Lets_Talk", message);
-            Toast.makeText(getActivity(), message, Toast.LENGTH_SHORT).show();
+        if (success) {
+            String nameFile = "new-record-" + System.currentTimeMillis();
+            File newAudio = new File(newPath, nameFile);
+            newFilePath = newAudio.getAbsolutePath();
+            mRecorder = new MediaRecorder();
+            mRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
+            mRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
+            mRecorder.setOutputFile(newFilePath);
+            mRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
+            try {
+                mRecorder.prepare();
+            } catch (IOException e) {
+                String message = "Prepare failed :" + e.getMessage();
+                Log.e("Recorder_Lets_Talk", message);
+                Toast.makeText(getActivity(), message, Toast.LENGTH_SHORT).show();
+            }
+            mRecorder.start();
+            showStop();
+        } else {
+            Toast.makeText(getActivity(), "Can't Create Directory", Toast.LENGTH_SHORT).show();
         }
-        mRecorder.start();
-        showStop();
     }
 
     @Override
