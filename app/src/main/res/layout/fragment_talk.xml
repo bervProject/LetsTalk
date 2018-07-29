@@ -64,7 +64,7 @@
         android:background="@color/boxColor"
         android:textColor="@color/textColorBox"
         android:textSize="16sp"
-        android:enabled="true"
+        android:enabled="false"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/labelBoxTalk" />

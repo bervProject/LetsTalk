@@ -140,6 +140,7 @@ public class ListenFragment extends Fragment implements EasyPermissions.Permissi
     private void sendingFile() {
         if (newFilePath != null) {
             String message = String.format("Sending %s", newFilePath);
+            resultBox.setText(message);
             Toast.makeText(getActivity(), message, Toast.LENGTH_SHORT).show();
         }
     }
@@ -163,7 +164,7 @@ public class ListenFragment extends Fragment implements EasyPermissions.Permissi
     private void recordAudio() {
         File cacheDir = Objects.requireNonNull(getActivity()).getCacheDir();
         File newPath = new File(cacheDir, "letstalk");
-        boolean success = false;
+        boolean success = true;
         if (!newPath.exists()) {
             success = newPath.mkdir();
         }
