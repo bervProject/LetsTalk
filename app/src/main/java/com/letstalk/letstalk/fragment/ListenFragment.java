@@ -169,7 +169,7 @@ public class ListenFragment extends Fragment implements EasyPermissions.Permissi
             success = newPath.mkdir();
         }
         if (success) {
-            String nameFile = "new-record-" + System.currentTimeMillis();
+            String nameFile = String.format(Locale.ENGLISH,"new-record-%d.m4a",System.currentTimeMillis());
             File newAudio = new File(newPath, nameFile);
             newFilePath = newAudio.getAbsolutePath();
             mRecorder = new MediaRecorder();

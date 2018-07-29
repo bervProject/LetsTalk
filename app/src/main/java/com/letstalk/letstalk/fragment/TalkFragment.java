@@ -5,6 +5,7 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -45,7 +46,7 @@ public class TalkFragment extends Fragment {
 
     // View Handler
     @BindView(R.id.buttonTalk)
-    Button talkButton;
+    Button button;
     @BindView(R.id.resultTalkBox)
     EditText textResult;
     @BindView(R.id.deleteResultTalkButton)
@@ -66,6 +67,7 @@ public class TalkFragment extends Fragment {
     private int readBufferPosition;
     private byte[] readBuffer;
     private Thread workerThread;
+    private boolean bluetoothOn = false;
 
     public TalkFragment() {
         // Required empty public constructor
@@ -96,12 +98,6 @@ public class TalkFragment extends Fragment {
         if (getActivity() instanceof TextSendListener) {
             textSendListener = (TextSendListener) getActivity();
         }
-    }
-
-    @Override
-    public void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        startBluetooth();
     }
 
     private void startBluetooth() {
@@ -139,12 +135,33 @@ public class TalkFragment extends Fragment {
             mmSocket.connect();
             mmOutputStream = mmSocket.getOutputStream();
             mmInputStream = mmSocket.getInputStream();
-
+            changeButtonToStop();
             beginListenForData();
         } catch (IOException e) {
             e.printStackTrace();
             Toast.makeText(getActivity(),"Can't Create Connection to Arduino", Toast.LENGTH_SHORT).show();
         }
+    }
+
+    @OnClick(R.id.buttonTalk)
+    void clickStartBluetooth() {
+        if (!bluetoothOn) {
+            startBluetooth();
+        } else {
+            stopReceive();
+        }
+    }
+
+    private void changeButtonToStop() {
+        bluetoothOn = true;
+        button.setText(R.string.stop);
+        button.setBackgroundColor(Color.parseColor("#FF0000"));
+    }
+
+    private void changeButtonToStart() {
+        bluetoothOn = false;
+        button.setText(R.string.button_talk);
+        button.setBackgroundColor(getResources().getColor(R.color.buttonColor));
     }
 
     private void beginListenForData() {
@@ -207,6 +224,10 @@ public class TalkFragment extends Fragment {
     @Override
     public void onStop() {
         super.onStop();
+        stopReceive();
+    }
+
+    private void stopReceive() {
         stopWorker = true;
         try {
             if (mmOutputStream!= null) {
