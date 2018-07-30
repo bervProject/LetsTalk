@@ -1,11 +1,8 @@
 package com.letstalk.letstalk.fragment;
 
 import android.Manifest;
-import android.content.Context;
 import android.media.MediaRecorder;
-import android.net.Uri;
 import android.os.Bundle;
-import android.speech.tts.TextToSpeech;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -17,8 +14,13 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.Toast;
 
+import com.afollestad.materialdialogs.DialogAction;
+import com.afollestad.materialdialogs.MaterialDialog;
 import com.letstalk.letstalk.R;
 import com.letstalk.letstalk.TextSendListener;
+import com.letstalk.letstalk.api.SpeechToText;
+import com.letstalk.letstalk.model.SpeechToTextResponse;
+import com.readystatesoftware.chuck.ChuckInterceptor;
 
 import java.io.File;
 import java.io.IOException;
@@ -29,7 +31,16 @@ import java.util.Objects;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
+import okhttp3.MediaType;
+import okhttp3.MultipartBody;
+import okhttp3.OkHttpClient;
+import okhttp3.RequestBody;
 import pub.devrel.easypermissions.EasyPermissions;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -54,6 +65,47 @@ public class ListenFragment extends Fragment implements EasyPermissions.Permissi
     private MediaRecorder mRecorder;
     private String newFilePath;
     private TextSendListener textSendListener;
+    private SpeechToText serviceSpeechToText;
+    private MaterialDialog loading;
+    private Call<SpeechToTextResponse> resultTextFromSpeech;
+
+    Callback<SpeechToTextResponse> callbackResponse = new Callback<SpeechToTextResponse>() {
+        @Override
+        public void onResponse(@NonNull Call<SpeechToTextResponse> call, @NonNull Response<SpeechToTextResponse> response) {
+            if (response.isSuccessful()) {
+                SpeechToTextResponse serverResponse = response.body();
+                if (serverResponse != null) {
+                    String status = serverResponse.getStatus();
+                    String result = serverResponse.getResult();
+                    if (status != null) {
+                        if (status.equalsIgnoreCase("success")) {
+                            if (result != null) {
+                                resultBox.setText(result);
+                            } else {
+                                resultBox.setText("");
+                                Toast.makeText(getActivity(), "No Result from Server", Toast.LENGTH_SHORT).show();
+                            }
+                        } else {
+                            Toast.makeText(getActivity(), "Failed to Send Data", Toast.LENGTH_SHORT).show();
+                        }
+                    } else {
+                        Toast.makeText(getActivity(), "Different Format Receive from Server", Toast.LENGTH_SHORT).show();
+                    }
+                } else {
+                    Toast.makeText(getActivity(), "Different Format Receive from Server", Toast.LENGTH_SHORT).show();
+                }
+            } else {
+                Toast.makeText(getActivity(), "Server Error", Toast.LENGTH_SHORT).show();
+            }
+            loading.dismiss();
+        }
+
+        @Override
+        public void onFailure(@NonNull Call<SpeechToTextResponse> call, @NonNull Throwable t) {
+            Toast.makeText(getActivity(), t.getMessage(), Toast.LENGTH_SHORT).show();
+            loading.dismiss();
+        }
+    };
 
     public ListenFragment() {
         // Required empty public constructor
@@ -73,7 +125,7 @@ public class ListenFragment extends Fragment implements EasyPermissions.Permissi
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        View view =  inflater.inflate(R.layout.fragment_listen, container, false);
+        View view = inflater.inflate(R.layout.fragment_listen, container, false);
         ButterKnife.bind(this, view);
         return view;
     }
@@ -116,6 +168,27 @@ public class ListenFragment extends Fragment implements EasyPermissions.Permissi
     public void onStart() {
         super.onStart();
         showMic();
+        prepareRetrofit();
+        prepareDialog();
+    }
+
+    private void prepareDialog() {
+        loading = new MaterialDialog.Builder(Objects.requireNonNull(getActivity()))
+                .title(R.string.sending_data)
+                .content(R.string.please_wait_sending_data)
+                .progress(true, 0)
+                .cancelable(true)
+                .canceledOnTouchOutside(true)
+                .onAny(new MaterialDialog.SingleButtonCallback() {
+                    @Override
+                    public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
+                        Toast.makeText(getActivity(), "Cancel Send Data", Toast.LENGTH_SHORT).show();
+                        if (resultTextFromSpeech != null && resultTextFromSpeech.isExecuted()) {
+                            resultTextFromSpeech.cancel();
+                        }
+                    }
+                })
+                .build();
     }
 
     private void showMic() {
@@ -139,9 +212,20 @@ public class ListenFragment extends Fragment implements EasyPermissions.Permissi
 
     private void sendingFile() {
         if (newFilePath != null) {
-            String message = String.format("Sending %s", newFilePath);
-            resultBox.setText(message);
-            Toast.makeText(getActivity(), message, Toast.LENGTH_SHORT).show();
+            if (serviceSpeechToText != null) {
+                loading.show();
+                File file = new File(newFilePath);
+                RequestBody requestBody = RequestBody.create(MediaType.parse("audio/*"), file);
+                MultipartBody.Part body = MultipartBody.Part.createFormData("audio",
+                        file.getName(),
+                        requestBody);
+                resultTextFromSpeech = serviceSpeechToText.speechToText(body);
+                resultTextFromSpeech.enqueue(callbackResponse);
+            } else {
+                Toast.makeText(getActivity(), "The devices not ready to send files to server.", Toast.LENGTH_SHORT).show();
+            }
+        } else {
+            Toast.makeText(getActivity(), "Please record your voice first please", Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -169,26 +253,39 @@ public class ListenFragment extends Fragment implements EasyPermissions.Permissi
             success = newPath.mkdir();
         }
         if (success) {
-            String nameFile = String.format(Locale.ENGLISH,"new-record-%d.m4a",System.currentTimeMillis());
+            String nameFile = String.format(Locale.ENGLISH, "new-record-%d.aac", System.currentTimeMillis());
             File newAudio = new File(newPath, nameFile);
             newFilePath = newAudio.getAbsolutePath();
             mRecorder = new MediaRecorder();
             mRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
-            mRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
+            mRecorder.setOutputFormat(MediaRecorder.OutputFormat.AAC_ADTS);
             mRecorder.setOutputFile(newFilePath);
-            mRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
+            mRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
             try {
                 mRecorder.prepare();
+                mRecorder.start();
+                showStop();
             } catch (IOException e) {
                 String message = "Prepare failed :" + e.getMessage();
                 Log.e("Recorder_Lets_Talk", message);
                 Toast.makeText(getActivity(), message, Toast.LENGTH_SHORT).show();
             }
-            mRecorder.start();
-            showStop();
         } else {
             Toast.makeText(getActivity(), "Can't Create Directory", Toast.LENGTH_SHORT).show();
         }
+    }
+
+    private void prepareRetrofit() {
+        OkHttpClient client = new OkHttpClient.Builder()
+                .addInterceptor(new ChuckInterceptor(Objects.requireNonNull(getActivity()).getApplicationContext()))
+                .build();
+        Retrofit retrofit = new Retrofit
+                .Builder()
+                .baseUrl("http://35.240.182.117:5000/")
+                .client(client)
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
+        serviceSpeechToText = retrofit.create(SpeechToText.class);
     }
 
     @Override
