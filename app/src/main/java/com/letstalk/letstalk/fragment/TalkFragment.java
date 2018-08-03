@@ -21,6 +21,7 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.Toast;
 
+import com.afollestad.materialdialogs.DialogAction;
 import com.afollestad.materialdialogs.MaterialDialog;
 import com.letstalk.letstalk.R;
 import com.letstalk.letstalk.TextSendListener;
@@ -92,7 +93,7 @@ public class TalkFragment extends Fragment {
                 //bluetooth device found
                 BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
                 newDevices.add(device);
-                Toast.makeText(getActivity(), "Find: "+ device.getName() + ", " + device.getAddress(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(context, "Find: "+ device.getName() + ", " + device.getAddress(), Toast.LENGTH_SHORT).show();
             }
         }
     };
@@ -129,8 +130,25 @@ public class TalkFragment extends Fragment {
         waitDialog = new MaterialDialog.Builder(Objects.requireNonNull(getActivity()))
                 .title(R.string.please_wait)
                 .content(R.string.finding_new_device)
+                .onAny(new MaterialDialog.SingleButtonCallback() {
+                    @Override
+                    public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
+                        if (btAdapter != null) {
+                            if (btAdapter.isDiscovering()) {
+                                btAdapter.cancelDiscovery();
+                            }
+                        }
+                    }
+                })
                 .progress(true,0)
                 .build();
+        IntentFilter filter = new IntentFilter();
+
+        filter.addAction(BluetoothDevice.ACTION_FOUND);
+        filter.addAction(BluetoothAdapter.ACTION_DISCOVERY_STARTED);
+        filter.addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
+
+        Objects.requireNonNull(getActivity()).registerReceiver(mReceiver, filter);
     }
 
     private void startBluetooth() {
@@ -167,13 +185,10 @@ public class TalkFragment extends Fragment {
     }
 
     private void findNewDevice() {
-        IntentFilter filter = new IntentFilter();
-
-        filter.addAction(BluetoothDevice.ACTION_FOUND);
-        filter.addAction(BluetoothAdapter.ACTION_DISCOVERY_STARTED);
-        filter.addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
-
-        Objects.requireNonNull(getActivity()).registerReceiver(mReceiver, filter);
+        if (btAdapter.isDiscovering()) {
+            // Bluetooth is already in modo discovery mode, we cancel to restart it again
+            btAdapter.cancelDiscovery();
+        }
         btAdapter.startDiscovery();
     }
 
