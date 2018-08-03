@@ -292,46 +292,24 @@ public class TalkFragment extends Fragment {
         Toast.makeText(getActivity(),"Listening Data from Arduino", Toast.LENGTH_SHORT).show();
 
         final Handler handler = new Handler();
-        final byte delimiter = 10; //This is the ASCII code for a newline character
 
         stopWorker = false;
-        readBufferPosition = 0;
         readBuffer = new byte[1024];
         workerThread = new Thread(new Runnable() {
             public void run()
             {
+                int bytes;
+                StringBuilder sb = new StringBuilder();
                 while(!Thread.currentThread().isInterrupted() && !stopWorker)
                 {
                     try
                     {
-                        int bytesAvailable = mmInputStream.available();
-                        if(bytesAvailable > 0)
-                        {
-                            byte[] packetBytes = new byte[bytesAvailable];
-                            mmInputStream.read(packetBytes);
-                            for(int i=0;i<bytesAvailable;i++)
-                            {
-                                byte b = packetBytes[i];
-                                if(b == delimiter)
-                                {
-                                    byte[] encodedBytes = new byte[readBufferPosition];
-                                    System.arraycopy(readBuffer, 0, encodedBytes, 0, encodedBytes.length);
-                                    final String data = new String(encodedBytes, "US-ASCII");
-                                    readBufferPosition = 0;
-
-                                    handler.post(new Runnable()
-                                    {
-                                        public void run()
-                                        {
-                                            textResult.setText(data);
-                                        }
-                                    });
-                                }
-                                else
-                                {
-                                    readBuffer[readBufferPosition++] = b;
-                                }
-                            }
+                        bytes = mmInputStream.read(readBuffer);
+                        String read = new String(readBuffer,0,bytes);
+                        sb.append(read);
+                        if(read.contains("\n")) {
+                            textResult.setText(sb.toString());
+                            sb.setLength(0);
                         }
                     }
                     catch (IOException ex)
