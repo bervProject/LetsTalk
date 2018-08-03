@@ -3,7 +3,10 @@ package com.letstalk.letstalk.fragment;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
@@ -18,12 +21,16 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.Toast;
 
+import com.afollestad.materialdialogs.MaterialDialog;
 import com.letstalk.letstalk.R;
 import com.letstalk.letstalk.TextSendListener;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
@@ -63,6 +70,33 @@ public class TalkFragment extends Fragment {
     private Thread workerThread;
     private boolean bluetoothOn = false;
 
+    private MaterialDialog selectMethodDialog;
+    private MaterialDialog selectPairedDeviceDialog;
+    private MaterialDialog selectNewDeviceDialog;
+    private MaterialDialog waitDialog;
+    private List<BluetoothDevice> newDevices = new ArrayList<>();
+
+    private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
+
+            if (BluetoothAdapter.ACTION_DISCOVERY_STARTED.equals(action)) {
+                //discovery starts, we can show progress dialog or perform other tasks
+                waitDialog.show();
+                newDevices.clear();
+            } else if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action)) {
+                //discovery finishes, dismis progress dialog
+                waitDialog.dismiss();
+                showNewDevice();
+            } else if (BluetoothDevice.ACTION_FOUND.equals(action)) {
+                //bluetooth device found
+                BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+                newDevices.add(device);
+                Toast.makeText(getActivity(), "Find: "+ device.getName() + ", " + device.getAddress(), Toast.LENGTH_SHORT).show();
+            }
+        }
+    };
+
     public TalkFragment() {
         // Required empty public constructor
     }
@@ -92,6 +126,11 @@ public class TalkFragment extends Fragment {
         if (getActivity() instanceof TextSendListener) {
             textSendListener = (TextSendListener) getActivity();
         }
+        waitDialog = new MaterialDialog.Builder(Objects.requireNonNull(getActivity()))
+                .title(R.string.please_wait)
+                .content(R.string.finding_new_device)
+                .progress(true,0)
+                .build();
     }
 
     private void startBluetooth() {
@@ -103,22 +142,98 @@ public class TalkFragment extends Fragment {
                 Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
                 startActivityForResult(enableBtIntent, START_BLUETOOTH_RC);
             }
-            Set<BluetoothDevice> pairedDevices = btAdapter.getBondedDevices();
-            if (pairedDevices.size() > 0 ) {
-                for (BluetoothDevice device : pairedDevices) {
-                    if (device.getAddress().equalsIgnoreCase(address)) {
-                        btDevice = device;
-                        break;
-                    }
-                }
-                if (btDevice != null) {
-                    startReceive();
-                } else {
-                    Toast.makeText(getActivity(),"This Device Never Connected to ARDUINO Device", Toast.LENGTH_SHORT).show();
-                }
-            } else {
-                Toast.makeText(getActivity(),"Never connected to bluetooth device.", Toast.LENGTH_SHORT).show();
+
+            selectMethodDialog = new MaterialDialog
+                    .Builder(Objects.requireNonNull(getActivity()))
+                    .title(R.string.select_method)
+                    .items(R.array.method_selection)
+                    .itemsCallbackSingleChoice(-1, new MaterialDialog.ListCallbackSingleChoice() {
+                        @Override
+                        public boolean onSelection(MaterialDialog dialog, View view, int which, CharSequence text) {
+                            if (which == 0) {
+                                // Paired Device
+                                showPairedDevice();
+                            } else {
+                                // Find New Device
+                                findNewDevice();
+                            }
+                            return true;
+                        }
+                    })
+                    .positiveText(R.string.ok)
+                    .build();
+            selectMethodDialog.show();
+        }
+    }
+
+    private void findNewDevice() {
+        IntentFilter filter = new IntentFilter();
+
+        filter.addAction(BluetoothDevice.ACTION_FOUND);
+        filter.addAction(BluetoothAdapter.ACTION_DISCOVERY_STARTED);
+        filter.addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
+
+        Objects.requireNonNull(getActivity()).registerReceiver(mReceiver, filter);
+        btAdapter.startDiscovery();
+    }
+
+    private void showNewDevice() {
+        if (newDevices.size() > 0) {
+            List<String> newDevicesName = new ArrayList<>();
+            for (BluetoothDevice device : newDevices) {
+                newDevicesName.add(device.getName());
             }
+            selectNewDeviceDialog = new MaterialDialog.Builder(Objects.requireNonNull(getActivity()))
+                    .title(R.string.select_new_devices)
+                    .items(newDevicesName)
+                    .itemsCallbackSingleChoice(-1, new MaterialDialog.ListCallbackSingleChoice() {
+                        @Override
+                        public boolean onSelection(MaterialDialog dialog, View itemView, int which, CharSequence text) {
+                            if (which >= newDevices.size()) {
+                                Toast.makeText(getActivity(), "False Reaction", Toast.LENGTH_SHORT).show();
+                            } else {
+                                btDevice = newDevices.get(which);
+                                startReceive();
+                            }
+                            return true;
+                        }
+                    })
+                    .build();
+            selectNewDeviceDialog.show();
+        } else {
+            Toast.makeText(getActivity(),"No Devices Found.", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void showPairedDevice() {
+        final Set<BluetoothDevice> pairedDevices = btAdapter.getBondedDevices();
+        List<String> devicesName = new ArrayList<>();
+        final List<BluetoothDevice> devices = new ArrayList<>();
+        if (pairedDevices.size() > 0 ) {
+            for (BluetoothDevice device : pairedDevices) {
+                devicesName.add(device.getName());
+                devices.add(device);
+            }
+            selectPairedDeviceDialog = new MaterialDialog
+                    .Builder(Objects.requireNonNull(getActivity()))
+                    .title(R.string.select_paired_device)
+                    .items(devicesName)
+                    .itemsCallbackSingleChoice(-1, new MaterialDialog.ListCallbackSingleChoice() {
+                        @Override
+                        public boolean onSelection(MaterialDialog dialog, View itemView, int which, CharSequence text) {
+                            if (which >= pairedDevices.size()) {
+                                Toast.makeText(getActivity(), "False Reaction", Toast.LENGTH_SHORT).show();
+                            } else {
+                                btDevice = devices.get(which);
+                                startReceive();
+                            }
+                            return true;
+                        }
+                    })
+                    .build();
+            selectPairedDeviceDialog.show();
+        } else {
+            Toast.makeText(getActivity(),"Never connected to bluetooth device.", Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -133,7 +248,7 @@ public class TalkFragment extends Fragment {
             beginListenForData();
         } catch (IOException e) {
             e.printStackTrace();
-            Toast.makeText(getActivity(),"Can't Create Connection to Arduino", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getActivity(),"Can't Create Connection to this device", Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -219,6 +334,12 @@ public class TalkFragment extends Fragment {
     public void onStop() {
         super.onStop();
         stopReceive();
+    }
+
+    @Override
+    public void onDestroyView() {
+        Objects.requireNonNull(getActivity()).unregisterReceiver(mReceiver);
+        super.onDestroyView();
     }
 
     private void stopReceive() {

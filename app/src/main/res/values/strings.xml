@@ -16,4 +16,14 @@
     <string name="stop">Berhenti</string>
     <string name="sending_data">Sending Data</string>
     <string name="please_wait_sending_data">Please wait, sending audio to server.</string>
+    <string name="select_method">Select Device</string>
+    <string name="ok">OK</string>
+    <string name="select_paired_device">Select Paired Devices</string>
+    <string name="please_wait">Please Wait</string>
+    <string name="finding_new_device">Finding New Device</string>
+    <string name="select_new_devices">Select New Devices to Connect</string>
+    <string-array name="method_selection">
+        <item>From Paired Device</item>
+        <item>Find New Device</item>
+    </string-array>
 </resources>
