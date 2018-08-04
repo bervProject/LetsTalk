@@ -304,6 +304,7 @@ public class TalkFragment extends Fragment {
         Toast.makeText(getActivity(),"Listening Data from Arduino", Toast.LENGTH_SHORT).show();
         stopWorker = false;
         readBuffer = new byte[1024];
+        final Handler handler = new Handler();
         Thread workerThread = new Thread(new Runnable() {
             public void run() {
                 int bytes;
@@ -313,7 +314,16 @@ public class TalkFragment extends Fragment {
                         bytes = mmInputStream.read(readBuffer);
                         String read = new String(readBuffer, 0, bytes);
                         sb.append(read);
-                        textResult.append(sb.toString());
+                        handler.post(new Runnable()
+                                    {
+                                        public void run()
+                                        {
+                                            textResult.setText(sb.toString());
+                                            if (textSendListener != null) {
+                                                textSendListener.callSpeech(sb.toString());
+                                            }
+                                        }
+                                    });
                         sb.setLength(0);
                         if (read.contains("\n")) { // harus diganti dengan sesuatu yang menandakan bahwa arduino selesai kirim pesan, kalau tidak akan terus diisi kotaknya
                             stopReceive();
