@@ -1,5 +1,6 @@
 package com.letstalk.letstalk.fragment;
 
+import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
@@ -9,7 +10,6 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Color;
 import android.os.Bundle;
-import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -66,14 +66,9 @@ public class TalkFragment extends Fragment {
     private OutputStream mmOutputStream;
     private InputStream mmInputStream;
     private boolean stopWorker;
-    private int readBufferPosition;
     private byte[] readBuffer;
-    private Thread workerThread;
     private boolean bluetoothOn = false;
 
-    private MaterialDialog selectMethodDialog;
-    private MaterialDialog selectPairedDeviceDialog;
-    private MaterialDialog selectNewDeviceDialog;
     private MaterialDialog waitDialog;
     private List<BluetoothDevice> newDevices = new ArrayList<>();
 
@@ -159,29 +154,46 @@ public class TalkFragment extends Fragment {
             if (!btAdapter.isEnabled()) {
                 Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
                 startActivityForResult(enableBtIntent, START_BLUETOOTH_RC);
+            } else {
+                showMethod();
             }
-
-            selectMethodDialog = new MaterialDialog
-                    .Builder(Objects.requireNonNull(getActivity()))
-                    .title(R.string.select_method)
-                    .items(R.array.method_selection)
-                    .itemsCallbackSingleChoice(-1, new MaterialDialog.ListCallbackSingleChoice() {
-                        @Override
-                        public boolean onSelection(MaterialDialog dialog, View view, int which, CharSequence text) {
-                            if (which == 0) {
-                                // Paired Device
-                                showPairedDevice();
-                            } else {
-                                // Find New Device
-                                findNewDevice();
-                            }
-                            return true;
-                        }
-                    })
-                    .positiveText(R.string.ok)
-                    .build();
-            selectMethodDialog.show();
         }
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == START_BLUETOOTH_RC) {
+            if (resultCode == Activity.RESULT_OK) {
+                showMethod();
+            } else {
+                Toast.makeText(getActivity(), "Please turn on bluetooth", Toast.LENGTH_SHORT).show();
+            }
+        } else {
+            super.onActivityResult(requestCode, resultCode, data);
+        }
+    }
+
+    private void showMethod() {
+        MaterialDialog selectMethodDialog = new MaterialDialog
+                .Builder(Objects.requireNonNull(getActivity()))
+                .title(R.string.select_method)
+                .items(R.array.method_selection)
+                .itemsCallbackSingleChoice(-1, new MaterialDialog.ListCallbackSingleChoice() {
+                    @Override
+                    public boolean onSelection(MaterialDialog dialog, View view, int which, CharSequence text) {
+                        if (which == 0) {
+                            // Paired Device
+                            showPairedDevice();
+                        } else {
+                            // Find New Device
+                            findNewDevice();
+                        }
+                        return true;
+                    }
+                })
+                .positiveText(R.string.ok)
+                .build();
+        selectMethodDialog.show();
     }
 
     private void findNewDevice() {
@@ -198,7 +210,7 @@ public class TalkFragment extends Fragment {
             for (BluetoothDevice device : newDevices) {
                 newDevicesName.add(device.getName());
             }
-            selectNewDeviceDialog = new MaterialDialog.Builder(Objects.requireNonNull(getActivity()))
+            MaterialDialog selectNewDeviceDialog = new MaterialDialog.Builder(Objects.requireNonNull(getActivity()))
                     .title(R.string.select_new_devices)
                     .items(newDevicesName)
                     .itemsCallbackSingleChoice(-1, new MaterialDialog.ListCallbackSingleChoice() {
@@ -229,7 +241,7 @@ public class TalkFragment extends Fragment {
                 devicesName.add(device.getName());
                 devices.add(device);
             }
-            selectPairedDeviceDialog = new MaterialDialog
+            MaterialDialog selectPairedDeviceDialog = new MaterialDialog
                     .Builder(Objects.requireNonNull(getActivity()))
                     .title(R.string.select_paired_device)
                     .items(devicesName)
@@ -290,31 +302,23 @@ public class TalkFragment extends Fragment {
 
     private void beginListenForData() {
         Toast.makeText(getActivity(),"Listening Data from Arduino", Toast.LENGTH_SHORT).show();
-
-        final Handler handler = new Handler();
-
         stopWorker = false;
         readBuffer = new byte[1024];
-        workerThread = new Thread(new Runnable() {
-            public void run()
-            {
+        Thread workerThread = new Thread(new Runnable() {
+            public void run() {
                 int bytes;
                 StringBuilder sb = new StringBuilder();
-                while(!Thread.currentThread().isInterrupted() && !stopWorker)
-                {
-                    try
-                    {
+                while (!Thread.currentThread().isInterrupted() && !stopWorker) {
+                    try {
                         bytes = mmInputStream.read(readBuffer);
-                        String read = new String(readBuffer,0,bytes);
+                        String read = new String(readBuffer, 0, bytes);
                         sb.append(read);
                         textResult.append(sb.toString());
                         sb.setLength(0);
                         if (read.contains("\n")) { // harus diganti dengan sesuatu yang menandakan bahwa arduino selesai kirim pesan, kalau tidak akan terus diisi kotaknya
                             stopReceive();
                         }
-                    }
-                    catch (IOException ex)
-                    {
+                    } catch (IOException ex) {
                         stopWorker = true;
                     }
                 }
