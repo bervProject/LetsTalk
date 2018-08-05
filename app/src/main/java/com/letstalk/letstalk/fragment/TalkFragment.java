@@ -10,6 +10,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -88,7 +89,7 @@ public class TalkFragment extends Fragment {
                 //bluetooth device found
                 BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
                 newDevices.add(device);
-                Toast.makeText(context, "Find: "+ device.getName() + ", " + device.getAddress(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(context, "Find: " + device.getName() + ", " + device.getAddress(), Toast.LENGTH_SHORT).show();
             }
         }
     };
@@ -135,7 +136,7 @@ public class TalkFragment extends Fragment {
                         }
                     }
                 })
-                .progress(true,0)
+                .progress(true, 0)
                 .build();
         IntentFilter filter = new IntentFilter();
 
@@ -228,7 +229,7 @@ public class TalkFragment extends Fragment {
                     .build();
             selectNewDeviceDialog.show();
         } else {
-            Toast.makeText(getActivity(),"No Devices Found.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getActivity(), "No Devices Found.", Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -236,7 +237,7 @@ public class TalkFragment extends Fragment {
         final Set<BluetoothDevice> pairedDevices = btAdapter.getBondedDevices();
         List<String> devicesName = new ArrayList<>();
         final List<BluetoothDevice> devices = new ArrayList<>();
-        if (pairedDevices.size() > 0 ) {
+        if (pairedDevices.size() > 0) {
             for (BluetoothDevice device : pairedDevices) {
                 devicesName.add(device.getName());
                 devices.add(device);
@@ -260,7 +261,7 @@ public class TalkFragment extends Fragment {
                     .build();
             selectPairedDeviceDialog.show();
         } else {
-            Toast.makeText(getActivity(),"Never connected to bluetooth device.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getActivity(), "Never connected to bluetooth device.", Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -275,7 +276,7 @@ public class TalkFragment extends Fragment {
             beginListenForData();
         } catch (IOException e) {
             e.printStackTrace();
-            Toast.makeText(getActivity(),"Can't Create Connection to this device", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getActivity(), "Can't Create Connection to this device", Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -301,32 +302,44 @@ public class TalkFragment extends Fragment {
     }
 
     private void beginListenForData() {
-        Toast.makeText(getActivity(),"Listening Data from Arduino", Toast.LENGTH_SHORT).show();
+        Toast.makeText(getActivity(), "Listening Data from Arduino", Toast.LENGTH_SHORT).show();
         stopWorker = false;
         readBuffer = new byte[1024];
         final Handler handler = new Handler();
         Thread workerThread = new Thread(new Runnable() {
             public void run() {
                 int bytes;
-                StringBuilder sb = new StringBuilder();
+                final StringBuilder sb = new StringBuilder();
                 while (!Thread.currentThread().isInterrupted() && !stopWorker) {
                     try {
                         bytes = mmInputStream.read(readBuffer);
                         String read = new String(readBuffer, 0, bytes);
                         sb.append(read);
-                        handler.post(new Runnable()
-                                    {
-                                        public void run()
-                                        {
-                                            textResult.setText(sb.toString());
-                                            if (textSendListener != null) {
-                                                textSendListener.callSpeech(sb.toString());
-                                            }
-                                        }
-                                    });
+                        handler.post(new Runnable() {
+                            public void run() {
+                                // otomatis speak apapun yang diterima
+                                // ganti ke set text untuk mereset tulisan, kalau append terus nambah teksnya
+                                // kalau set text udah pasti satu baris, kalau append bisa jadi banyak baris
+                                textResult.append(sb.toString());
+                                if (textSendListener != null) {
+                                    textSendListener.callSpeech(sb.toString());
+                                    // modenya ada dua queue sama flush
+                                    // speechnya udah mode queue, jadi kata yang sebelumnya diucap gak langsung berhenti
+                                    // kalau mode flush, setiap yang baru akan dimulai duluan dan yang sebelumnya akan berhenti
+                                }
+                            }
+                        });
                         sb.setLength(0);
-                        if (read.contains("\n")) { // harus diganti dengan sesuatu yang menandakan bahwa arduino selesai kirim pesan, kalau tidak akan terus diisi kotaknya
-                            stopReceive();
+                        /**
+                         * kalau gak mau bluetooth langsung berhenti, hapus bagian if ini
+                         */
+                        if (read.contains("\n")) {
+                            handler.post(new Runnable() {
+                                @Override
+                                public void run() {
+                                    stopReceive();
+                                }
+                            });
                         }
                     } catch (IOException ex) {
                         stopWorker = true;
@@ -353,7 +366,7 @@ public class TalkFragment extends Fragment {
     private void stopReceive() {
         stopWorker = true;
         try {
-            if (mmOutputStream!= null) {
+            if (mmOutputStream != null) {
                 mmOutputStream.close();
             }
             if (mmInputStream != null) {
