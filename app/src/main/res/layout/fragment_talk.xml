@@ -64,7 +64,6 @@
         android:background="@color/boxColor"
         android:textColor="@color/textColorBox"
         android:textSize="16sp"
-        android:enabled="false"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/labelBoxTalk" />
@@ -76,7 +75,7 @@
         android:layout_marginBottom="4dp"
         android:layout_marginEnd="8dp"
         android:padding="2dp"
-        android:background="@color/boxColor"
+        android:background="#00000000"
         android:src="@drawable/ic_delete_red_24dp"
         app:layout_constraintBottom_toBottomOf="@id/resultTalkBox"
         app:layout_constraintEnd_toEndOf="@id/resultTalkBox" />

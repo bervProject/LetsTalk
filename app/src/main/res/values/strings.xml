@@ -9,9 +9,6 @@
     <string name="label_box_result_listen">Hasil terjemahan</string>
     <string name="label_box_result_talk">Hasil gerakan</string>
     <string name="button_talk">Mulai Berbicara</string>
-
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="audio_record">Please confirm audio record permission to use this features</string>
     <string name="stop">Berhenti</string>
     <string name="sending_data">Sending Data</string>

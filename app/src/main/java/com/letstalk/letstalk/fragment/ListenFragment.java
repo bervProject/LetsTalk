@@ -127,6 +127,7 @@ public class ListenFragment extends Fragment implements EasyPermissions.Permissi
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_listen, container, false);
         ButterKnife.bind(this, view);
+        resultBox.setKeyListener(null);
         return view;
     }
 

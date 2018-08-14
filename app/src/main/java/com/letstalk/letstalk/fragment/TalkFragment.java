@@ -114,6 +114,7 @@ public class TalkFragment extends Fragment {
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_talk, container, false);
         ButterKnife.bind(this, view);
+        textResult.setKeyListener(null);
         return view;
     }
 
@@ -333,6 +334,7 @@ public class TalkFragment extends Fragment {
                         /**
                          * kalau gak mau bluetooth langsung berhenti, hapus bagian if ini
                          */
+                        /*
                         if (read.contains("\n")) {
                             handler.post(new Runnable() {
                                 @Override
@@ -340,7 +342,7 @@ public class TalkFragment extends Fragment {
                                     stopReceive();
                                 }
                             });
-                        }
+                        }*/
                     } catch (IOException ex) {
                         stopWorker = true;
                     }
