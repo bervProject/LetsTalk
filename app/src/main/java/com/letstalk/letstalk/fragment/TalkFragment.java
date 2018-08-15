@@ -329,7 +329,7 @@ public class TalkFragment extends Fragment {
                                         public void run() {
                                             textResult.append(data); // append to fill box without erase another text before
                                             if (textSendListener != null) {
-                                                textSendListener.callSpeech(textResult.getText().toString());
+                                                textSendListener.callSpeech(textResult.getText().toString(), true);
                                             }
                                         }
                                     });
@@ -383,7 +383,7 @@ public class TalkFragment extends Fragment {
     void clickTalk() {
         String text = textResult.getText().toString();
         if (textSendListener != null) {
-            textSendListener.callSpeech(text);
+            textSendListener.callSpeech(text,true);
         }
     }
 

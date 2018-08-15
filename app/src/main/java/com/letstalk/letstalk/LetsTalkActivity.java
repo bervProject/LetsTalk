@@ -60,7 +60,21 @@ public class LetsTalkActivity extends AppCompatActivity implements TextToSpeech.
         AudioManager am = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
         if (am != null && am.getRingerMode() == AudioManager.RINGER_MODE_NORMAL) {
             tts.speak(text, TextToSpeech.QUEUE_ADD, null); // Queue
-            // tts.speak(text, TextToSpeech.QUEUE_FLUSH, null); Queue Flush
+        } else {
+            Toast.makeText(this, "Please turn off silenced/vibrate mode. Can't play the audio.", Toast.LENGTH_LONG).show();
+        }
+    }
+
+    @Override
+    public void callSpeech(String text, boolean flushMode) {
+        AudioManager am = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+        if (am != null && am.getRingerMode() == AudioManager.RINGER_MODE_NORMAL) {
+            if (flushMode){
+                tts.speak(text, TextToSpeech.QUEUE_FLUSH, null); // Queue Flush
+            } else {
+
+                tts.speak(text, TextToSpeech.QUEUE_ADD, null); // Queue
+            }
         } else {
             Toast.makeText(this, "Please turn off silenced/vibrate mode. Can't play the audio.", Toast.LENGTH_LONG).show();
         }

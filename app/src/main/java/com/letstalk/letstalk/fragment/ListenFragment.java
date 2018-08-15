@@ -161,7 +161,7 @@ public class ListenFragment extends Fragment implements EasyPermissions.Permissi
     void speak() {
         if (textSendListener != null) {
             String text = resultBox.getText().toString();
-            textSendListener.callSpeech(text);
+            textSendListener.callSpeech(text,true);
         }
     }
 
