@@ -309,6 +309,7 @@ public class TalkFragment extends Fragment {
         stopWorker = false;
         readBuffer = new byte[1024];
         readBufferPosition = 0;
+        final StringBuilder previousWord = new StringBuilder();
         final Handler handler = new Handler();
         Thread workerThread = new Thread(new Runnable() {
             public void run() {
@@ -325,14 +326,18 @@ public class TalkFragment extends Fragment {
                                     System.arraycopy(readBuffer, 0, encodedBytes, 0, encodedBytes.length);
                                     final String data = new String(encodedBytes, "US-ASCII");
                                     readBufferPosition = 0;
-                                    handler.post(new Runnable() {
-                                        public void run() {
-                                            textResult.append(data); // append to fill box without erase another text before
-                                            if (textSendListener != null) {
-                                                textSendListener.callSpeech(textResult.getText().toString(), true);
+                                    if (!previousWord.toString().equalsIgnoreCase(data)) {
+                                        previousWord.setLength(0);
+                                        previousWord.append(data);
+                                        handler.post(new Runnable() {
+                                            public void run() {
+                                                textResult.append(data); // append to fill box without erase another text before
+                                                if (textSendListener != null) {
+                                                    textSendListener.callSpeech(textResult.getText().toString(), true);
+                                                }
                                             }
-                                        }
-                                    });
+                                        });
+                                    }
                                 } else {
                                     readBufferPosition = (readBufferPosition + 1) % 1024;
                                     readBuffer[readBufferPosition] = b;
