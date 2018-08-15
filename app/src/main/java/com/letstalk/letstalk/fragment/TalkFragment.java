@@ -69,6 +69,7 @@ public class TalkFragment extends Fragment {
     private boolean stopWorker;
     private byte[] readBuffer;
     private boolean bluetoothOn = false;
+    private int readBufferPosition;
 
     private MaterialDialog waitDialog;
     private List<BluetoothDevice> newDevices = new ArrayList<>();
@@ -304,45 +305,40 @@ public class TalkFragment extends Fragment {
 
     private void beginListenForData() {
         Toast.makeText(getActivity(), "Listening Data from Arduino", Toast.LENGTH_SHORT).show();
+        final byte delimiter = 10;
         stopWorker = false;
         readBuffer = new byte[1024];
+        readBufferPosition = 0;
         final Handler handler = new Handler();
         Thread workerThread = new Thread(new Runnable() {
             public void run() {
-                int bytes;
-                final StringBuilder sb = new StringBuilder();
                 while (!Thread.currentThread().isInterrupted() && !stopWorker) {
                     try {
-                        bytes = mmInputStream.read(readBuffer);
-                        String read = new String(readBuffer, 0, bytes);
-                        sb.append(read);
-                        handler.post(new Runnable() {
-                            public void run() {
-                                // otomatis speak apapun yang diterima
-                                // ganti ke set text untuk mereset tulisan, kalau append terus nambah teksnya
-                                // kalau set text udah pasti satu baris, kalau append bisa jadi banyak baris
-                                textResult.append(sb.toString());
-                                if (textSendListener != null) {
-                                    textSendListener.callSpeech(sb.toString());
-                                    // modenya ada dua queue sama flush
-                                    // speechnya udah mode queue, jadi kata yang sebelumnya diucap gak langsung berhenti
-                                    // kalau mode flush, setiap yang baru akan dimulai duluan dan yang sebelumnya akan berhenti
+                        int bytesAvailable = mmInputStream.available();
+                        if (bytesAvailable > 0) {
+                            byte[] packetBytes = new byte[bytesAvailable];
+                            mmInputStream.read(packetBytes);
+                            for (int i = 0; i < bytesAvailable; i++) {
+                                byte b = packetBytes[i];
+                                if (b == delimiter) {
+                                    byte[] encodedBytes = new byte[readBufferPosition];
+                                    System.arraycopy(readBuffer, 0, encodedBytes, 0, encodedBytes.length);
+                                    final String data = new String(encodedBytes, "US-ASCII");
+                                    readBufferPosition = 0;
+                                    handler.post(new Runnable() {
+                                        public void run() {
+                                            textResult.append(data); // append to fill box without erase another text before
+                                            if (textSendListener != null) {
+                                                textSendListener.callSpeech(textResult.getText().toString());
+                                            }
+                                        }
+                                    });
+                                } else {
+                                    readBufferPosition = (readBufferPosition + 1) % 1024;
+                                    readBuffer[readBufferPosition] = b;
                                 }
                             }
-                        });
-                        sb.setLength(0);
-                        /**
-                         * kalau gak mau bluetooth langsung berhenti, hapus bagian if ini
-                         */
-                        /*
-                        if (read.contains("\n")) {
-                            handler.post(new Runnable() {
-                                @Override
-                                public void run() {
-                                    stopReceive();
-                                }
-                            });
-                        }*/
+                        }
                     } catch (IOException ex) {
                         stopWorker = true;
                     }
