@@ -309,9 +309,10 @@ public class TalkFragment extends Fragment {
         stopWorker = false;
         readBuffer = new byte[1024];
         readBufferPosition = 0;
-        final StringBuilder previousWord = new StringBuilder();
         final Handler handler = new Handler();
         Thread workerThread = new Thread(new Runnable() {
+            final StringBuilder previousWord = new StringBuilder();
+            long lastWordTime = 0;
             public void run() {
                 while (!Thread.currentThread().isInterrupted() && !stopWorker) {
                     try {
@@ -329,14 +330,31 @@ public class TalkFragment extends Fragment {
                                     if (!previousWord.toString().equalsIgnoreCase(data)) {
                                         previousWord.setLength(0);
                                         previousWord.append(data);
+                                        lastWordTime = System.currentTimeMillis();
                                         handler.post(new Runnable() {
                                             public void run() {
-                                                textResult.append(data); // append to fill box without erase another text before
+                                                textResult.append(data); // append to fill box without erase another text before, change to setText if only want using one word in a box.
                                                 if (textSendListener != null) {
                                                     textSendListener.callSpeech(textResult.getText().toString(), true);
                                                 }
                                             }
                                         });
+                                    } else {
+                                        long currentTime = System.currentTimeMillis();
+                                        long duration = currentTime - lastWordTime;
+                                        if (duration >= 3000) { // 3000 ms = 3 s
+                                            previousWord.setLength(0);
+                                            previousWord.append(data);
+                                            lastWordTime = System.currentTimeMillis();
+                                            handler.post(new Runnable() {
+                                                public void run() {
+                                                    textResult.append(data); // append to fill box without erase another text before, change to setText if only want using one word in a box.
+                                                    if (textSendListener != null) {
+                                                        textSendListener.callSpeech(textResult.getText().toString(), true);
+                                                    }
+                                                }
+                                            });
+                                        }
                                     }
                                 } else {
                                     readBufferPosition = (readBufferPosition + 1) % 1024;
