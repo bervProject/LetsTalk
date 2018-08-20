@@ -333,7 +333,11 @@ public class TalkFragment extends Fragment {
                                         lastWordTime = System.currentTimeMillis();
                                         handler.post(new Runnable() {
                                             public void run() {
-                                                textResult.append(data); // append to fill box without erase another text before, change to setText if only want one word/sentence
+                                                String text = data;
+                                                if (!data.contains("\n")) {
+                                                    text = data.concat("\n");
+                                                }
+                                                textResult.append(text); // append to fill box without erase another text before, change to setText if only want one word/sentence
                                                 if (textSendListener != null) {
                                                     textSendListener.callSpeech(data, false);
                                                 }
@@ -348,7 +352,11 @@ public class TalkFragment extends Fragment {
                                             lastWordTime = System.currentTimeMillis();
                                             handler.post(new Runnable() {
                                                 public void run() {
-                                                    textResult.append(data); // append to fill box without erase another text before, change to setText if only want using one word in a box.
+                                                    String text = data;
+                                                    if (!data.contains("\n")) {
+                                                        text = data.concat("\n");
+                                                    }
+                                                    textResult.append(text); // append to fill box without erase another text before, change to setText if only want one word/sentence
                                                     if (textSendListener != null) {
                                                         textSendListener.callSpeech(data, false);
                                                     }
@@ -412,7 +420,7 @@ public class TalkFragment extends Fragment {
 
     @OnClick(R.id.deleteResultTalkButton)
     void clearText() {
-        textResult.getText().clear();
+        textResult.setText("");
     }
 
 }
