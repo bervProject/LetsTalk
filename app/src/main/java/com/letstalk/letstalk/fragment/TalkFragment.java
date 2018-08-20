@@ -132,21 +132,21 @@ public class TalkFragment extends Fragment {
     private void initWords() {
         listOfWords.clear();
         Map<String,String> sorry = new HashMap<>();
-        sorry.put("id","Maaf");
-        sorry.put("en","Sorry");
-        sorry.put("kr","...");
+        sorry.put("id","Maafkan aku");
+        sorry.put("en","I'm sorry");
+        sorry.put("kr","미안 해요");
         Map<String,String> goodLuck = new HashMap<>();
         goodLuck.put("id","Semoga Beruntung");
         goodLuck.put("en","Good Luck!");
-        goodLuck.put("kr","...");
+        goodLuck.put("kr","행운을 빕니다");
         Map<String,String> hello = new HashMap<>();
         hello.put("id","Halo");
         hello.put("en","Hello");
-        hello.put("kr","...");
+        hello.put("kr","안녕하세요");
         Map<String,String> goodBye = new HashMap<>();
         goodBye.put("id","Selamat Tinggal");
         goodBye.put("en","Good Bye");
-        goodBye.put("kr","...");
+        goodBye.put("kr","안녕");
         // Must in order when add, not in Initialization
         listOfWords.add(sorry); // 0
         listOfWords.add(goodLuck); // 1
@@ -430,10 +430,14 @@ public class TalkFragment extends Fragment {
     }
 
     private String handleData(String data) {
-        int val = Integer.parseInt(data.replace("\n",""));
-        if (val >= 1 && val <= 4) {
-            return listOfWords.get(val-1).get(selectedLanguage);
-        } else {
+        try {
+            int val = Integer.parseInt(data.trim().replaceAll("\\D+",""));
+            if (val >= 1 && val <= 4) {
+                return listOfWords.get(val - 1).get(selectedLanguage);
+            } else {
+                return null;
+            }
+        } catch (NumberFormatException e) {
             return null;
         }
     }
