@@ -24,6 +24,7 @@ import com.readystatesoftware.chuck.ChuckInterceptor;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -68,6 +69,8 @@ public class ListenFragment extends Fragment implements EasyPermissions.Permissi
     private SpeechToText serviceSpeechToText;
     private MaterialDialog loading;
     private Call<SpeechToTextResponse> resultTextFromSpeech;
+
+    private final String URL_SERVER = "http://35.240.163.60:5000/";
 
     Callback<SpeechToTextResponse> callbackResponse = new Callback<SpeechToTextResponse>() {
         @Override
@@ -282,7 +285,7 @@ public class ListenFragment extends Fragment implements EasyPermissions.Permissi
                 .build();
         Retrofit retrofit = new Retrofit
                 .Builder()
-                .baseUrl("http://35.240.182.117:5000/")
+                .baseUrl(URL_SERVER)
                 .client(client)
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
