@@ -335,7 +335,7 @@ public class TalkFragment extends Fragment {
                                             public void run() {
                                                 textResult.append(data); // append to fill box without erase another text before, change to setText if only want one word/sentence
                                                 if (textSendListener != null) {
-                                                    textSendListener.callSpeech(textResult.getText().toString(), false);
+                                                    textSendListener.callSpeech(data, false);
                                                 }
                                             }
                                         });
@@ -350,7 +350,7 @@ public class TalkFragment extends Fragment {
                                                 public void run() {
                                                     textResult.append(data); // append to fill box without erase another text before, change to setText if only want using one word in a box.
                                                     if (textSendListener != null) {
-                                                        textSendListener.callSpeech(textResult.getText().toString(), true);
+                                                        textSendListener.callSpeech(data, false);
                                                     }
                                                 }
                                             });
