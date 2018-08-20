@@ -430,8 +430,8 @@ public class TalkFragment extends Fragment {
     }
 
     private String handleData(String data) {
-        int val = Integer.valueOf(data);
-        if (val >= 1 && val <=4) {
+        int val = Integer.parseInt(data.replace("\n",""));
+        if (val >= 1 && val <= 4) {
             return listOfWords.get(val-1).get(selectedLanguage);
         } else {
             return null;
