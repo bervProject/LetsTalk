@@ -163,8 +163,25 @@ public class ListenFragment extends Fragment implements EasyPermissions.Permissi
     @OnClick(R.id.talkResultButton)
     void speak() {
         if (textSendListener != null) {
-            String text = resultBox.getText().toString();
-            textSendListener.callSpeech(text,true);
+            final String resultText = resultBox.getText().toString();
+
+            new MaterialDialog.Builder(Objects.requireNonNull(getActivity()))
+                    .title("Select Language to Speak")
+                    .items(R.array.language_selection)
+                    .itemsCallbackSingleChoice(-1, new MaterialDialog.ListCallbackSingleChoice() {
+                        @Override
+                        public boolean onSelection(MaterialDialog dialog, View itemView, int which, CharSequence text) {
+                            if (which == 0) {
+                                textSendListener.callSpeech("id", resultText,true);
+                            } else if (which == 1) {
+                                textSendListener.callSpeech("kr", resultText, true);
+                            } else {
+                                textSendListener.callSpeech("en", resultText, true);
+                            }
+                            return true;
+                        }
+                    })
+                    .show();
         }
     }
 

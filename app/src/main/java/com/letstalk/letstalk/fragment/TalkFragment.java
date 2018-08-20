@@ -311,9 +311,11 @@ public class TalkFragment extends Fragment {
         readBufferPosition = 0;
         final Handler handler = new Handler();
         Thread workerThread = new Thread(new Runnable() {
-            final StringBuilder previousWord = new StringBuilder();
-            long lastWordTime = 0;
             public void run() {
+                StringBuilder previousWord = new StringBuilder();
+                long lastWordTime = 0;
+                final StringBuilder textData = new StringBuilder();
+                final StringBuilder lang = new StringBuilder("en");
                 while (!Thread.currentThread().isInterrupted() && !stopWorker) {
                     try {
                         int bytesAvailable = mmInputStream.available();
@@ -325,22 +327,30 @@ public class TalkFragment extends Fragment {
                                 if (b == delimiter) {
                                     byte[] encodedBytes = new byte[readBufferPosition];
                                     System.arraycopy(readBuffer, 0, encodedBytes, 0, encodedBytes.length);
-                                    final String data = new String(encodedBytes, "US-ASCII");
+
+                                    String data = new String(encodedBytes, "US-ASCII");
+                                    /* Checking Data */
+                                    String[] datas = data.split(",");
+                                    if (datas.length == 1) {
+                                        lang.setLength(0);
+                                        textData.setLength(0);
+                                        lang.append("en");
+                                        textData.append(data);
+                                    } else if (datas.length == 2) {
+                                        lang.setLength(0);
+                                        textData.setLength(0);
+                                        lang.append(datas[0]);
+                                        textData.append(datas[1]);
+                                    }
+
                                     readBufferPosition = 0;
-                                    if (!previousWord.toString().equalsIgnoreCase(data)) {
+                                    if (!previousWord.toString().equalsIgnoreCase(textData.toString())) {
                                         previousWord.setLength(0);
-                                        previousWord.append(data);
+                                        previousWord.append(textData);
                                         lastWordTime = System.currentTimeMillis();
                                         handler.post(new Runnable() {
                                             public void run() {
-                                                String text = data;
-                                                if (!data.contains("\n")) {
-                                                    text = data.concat("\n");
-                                                }
-                                                textResult.append(text); // append to fill box without erase another text before, change to setText if only want one word/sentence
-                                                if (textSendListener != null) {
-                                                    textSendListener.callSpeech(data, false);
-                                                }
+                                                speak(lang.toString(),textData.toString(),false);
                                             }
                                         });
                                     } else {
@@ -348,18 +358,11 @@ public class TalkFragment extends Fragment {
                                         long duration = currentTime - lastWordTime;
                                         if (duration >= 3000) { // 3000 ms = 3 s
                                             previousWord.setLength(0);
-                                            previousWord.append(data);
+                                            previousWord.append(textData);
                                             lastWordTime = System.currentTimeMillis();
                                             handler.post(new Runnable() {
                                                 public void run() {
-                                                    String text = data;
-                                                    if (!data.contains("\n")) {
-                                                        text = data.concat("\n");
-                                                    }
-                                                    textResult.append(text); // append to fill box without erase another text before, change to setText if only want one word/sentence
-                                                    if (textSendListener != null) {
-                                                        textSendListener.callSpeech(data, false);
-                                                    }
+                                                    speak(lang.toString(), textData.toString(), false);
                                                 }
                                             });
                                         }
@@ -378,6 +381,16 @@ public class TalkFragment extends Fragment {
         });
 
         workerThread.start();
+    }
+
+    private void speak(String lang, String text, boolean mode) {
+        if (!text.contains("\n")) {
+            text = text.concat("\n");
+        }
+        textResult.append(text); // append to fill box without erase another text before, change to setText if only want one word/sentence
+        if (textSendListener != null) {
+            textSendListener.callSpeech(lang, text, mode);
+        }
     }
 
     @Override
@@ -412,10 +425,25 @@ public class TalkFragment extends Fragment {
 
     @OnClick(R.id.talkButton)
     void clickTalk() {
-        String text = textResult.getText().toString();
-        if (textSendListener != null) {
-            textSendListener.callSpeech(text,true);
-        }
+        final String resultText = textResult.getText().toString();
+
+        new MaterialDialog.Builder(Objects.requireNonNull(getActivity()))
+                .title("Select Language to Speak")
+                .items(R.array.language_selection)
+                .itemsCallbackSingleChoice(-1, new MaterialDialog.ListCallbackSingleChoice() {
+                    @Override
+                    public boolean onSelection(MaterialDialog dialog, View itemView, int which, CharSequence text) {
+                        if (which == 0) {
+                            textSendListener.callSpeech("id", resultText,true);
+                        } else if (which == 1) {
+                            textSendListener.callSpeech("kr", resultText, true);
+                        } else {
+                            textSendListener.callSpeech("en", resultText, true);
+                        }
+                        return true;
+                    }
+                })
+                .show();
     }
 
     @OnClick(R.id.deleteResultTalkButton)

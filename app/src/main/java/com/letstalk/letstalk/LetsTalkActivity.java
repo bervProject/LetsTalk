@@ -59,6 +59,8 @@ public class LetsTalkActivity extends AppCompatActivity implements TextToSpeech.
     public void callSpeech(String text) {
         AudioManager am = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
         if (am != null && am.getRingerMode() == AudioManager.RINGER_MODE_NORMAL) {
+            // Default English
+            tts.setLanguage(Locale.ENGLISH);
             tts.speak(text, TextToSpeech.QUEUE_ADD, null); // Queue
         } else {
             Toast.makeText(this, "Please turn off silenced/vibrate mode. Can't play the audio.", Toast.LENGTH_LONG).show();
@@ -69,7 +71,9 @@ public class LetsTalkActivity extends AppCompatActivity implements TextToSpeech.
     public void callSpeech(String text, boolean flushMode) {
         AudioManager am = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
         if (am != null && am.getRingerMode() == AudioManager.RINGER_MODE_NORMAL) {
-            if (flushMode){
+            // Default English
+            tts.setLanguage(Locale.ENGLISH);
+            if (flushMode) {
                 tts.speak(text, TextToSpeech.QUEUE_FLUSH, null); // Queue Flush
             } else {
 
@@ -81,10 +85,41 @@ public class LetsTalkActivity extends AppCompatActivity implements TextToSpeech.
     }
 
     @Override
+    public void callSpeech(String language, String text, boolean flushMode) {
+        AudioManager am = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+        if (am != null && am.getRingerMode() == AudioManager.RINGER_MODE_NORMAL) {
+            int mode;
+            if (flushMode) {
+                mode = TextToSpeech.QUEUE_FLUSH;
+            } else {
+                mode = TextToSpeech.QUEUE_ADD;
+            }
+            Locale locale;
+            if (language.equalsIgnoreCase("id")) {
+                locale = new Locale("id", "ID");
+            } else if (language.equalsIgnoreCase("kr")) {
+                locale = Locale.KOREAN;
+            } else {
+                locale = Locale.ENGLISH;
+            }
+            int result = tts.setLanguage(locale);
+            if (result == TextToSpeech.LANG_MISSING_DATA
+                    || result == TextToSpeech.LANG_NOT_SUPPORTED) {
+                Log.e("TTS", "This Language is not supported");
+                Toast.makeText(this, "This Language is not supported", Toast.LENGTH_SHORT).show();
+            } else {
+                tts.speak(text, mode, null);
+            }
+        } else {
+            Toast.makeText(this, "Please turn off silenced/vibrate mode. Can't play the audio.", Toast.LENGTH_LONG).show();
+        }
+    }
+
+    @Override
     public void onInit(int i) {
         if (i == TextToSpeech.SUCCESS) {
             tts.setSpeechRate(0.5f);
-            int result = tts.setLanguage(new Locale("id","ID"));
+            int result = tts.setLanguage(new Locale("id", "ID"));
             // int result = tts.setLanguage(Locale.ENGLISH);
             if (result == TextToSpeech.LANG_MISSING_DATA
                     || result == TextToSpeech.LANG_NOT_SUPPORTED) {

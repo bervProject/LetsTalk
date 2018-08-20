@@ -3,14 +3,14 @@
     <string name="title_activity_lets_talk">Lets Talk</string>
     <string name="action_settings">Settings</string>
     <string name="section_format">Hello World from section: %1$d</string>
-    <string name="listen">Mendengar</string>
-    <string name="talk">Berbicara</string>
-    <string name="instruction_listen">Tekan tombol mic untuk mulai berbicara</string>
+    <string name="listen">Listen</string>
+    <string name="talk">Speak</string>
+    <string name="instruction_listen">Press mic button to talk</string>
     <string name="label_box_result_listen">Hasil terjemahan</string>
     <string name="label_box_result_talk">Hasil gerakan</string>
-    <string name="button_talk">Mulai Berbicara</string>
+    <string name="button_talk">Start Talking</string>
     <string name="audio_record">Please confirm audio record permission to use this features</string>
-    <string name="stop">Berhenti</string>
+    <string name="stop">Stop</string>
     <string name="sending_data">Sending Data</string>
     <string name="please_wait_sending_data">Please wait, sending audio to server.</string>
     <string name="select_method">Select Device</string>
@@ -22,5 +22,10 @@
     <string-array name="method_selection">
         <item>From Paired Device</item>
         <item>Find New Device</item>
+    </string-array>
+    <string-array name="language_selection">
+        <item>Bahasa Indonesia</item>
+        <item>Korean</item>
+        <item>English</item>
     </string-array>
 </resources>
