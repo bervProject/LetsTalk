@@ -31,7 +31,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
@@ -74,6 +76,7 @@ public class TalkFragment extends Fragment {
 
     private MaterialDialog waitDialog;
     private List<BluetoothDevice> newDevices = new ArrayList<>();
+    private List<Map<String,String>> listOfWords = new ArrayList<>();
 
     private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
         public void onReceive(Context context, Intent intent) {
@@ -118,6 +121,37 @@ public class TalkFragment extends Fragment {
         ButterKnife.bind(this, view);
         textResult.setKeyListener(null);
         return view;
+    }
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        initWords();
+    }
+
+    private void initWords() {
+        listOfWords.clear();
+        Map<String,String> sorry = new HashMap<>();
+        sorry.put("id","Maaf");
+        sorry.put("en","Sorry");
+        sorry.put("kr","...");
+        Map<String,String> goodLuck = new HashMap<>();
+        goodLuck.put("id","Semoga Beruntung");
+        goodLuck.put("en","Good Luck!");
+        goodLuck.put("kr","...");
+        Map<String,String> hello = new HashMap<>();
+        hello.put("id","Halo");
+        hello.put("en","Hello");
+        hello.put("kr","...");
+        Map<String,String> goodBye = new HashMap<>();
+        goodBye.put("id","Selamat Tinggal");
+        goodBye.put("en","Good Bye");
+        goodBye.put("kr","...");
+        // Must in order when add, not in Initialization
+        listOfWords.add(sorry); // 0
+        listOfWords.add(goodLuck); // 1
+        listOfWords.add(hello); // 2
+        listOfWords.add(goodBye); // 3
     }
 
     @Override
@@ -397,56 +431,10 @@ public class TalkFragment extends Fragment {
 
     private String handleData(String data) {
         int val = Integer.valueOf(data);
-        if (val == 1) {
-            return getSorry();
-        } else if (val == 2) {
-            return getGoodLuck();
-        } else if (val == 3) {
-            return getHello();
-        } else if (val == 4) {
-            return getGoodBye();
+        if (val >= 1 && val <=4) {
+            return listOfWords.get(val-1).get(selectedLanguage);
         } else {
             return null;
-        }
-    }
-
-    private String getSorry() {
-        if (selectedLanguage.equalsIgnoreCase("id")) {
-            return "Maaf";
-        } else if (selectedLanguage.equalsIgnoreCase("kr")) {
-            return "";
-        } else {
-            return "Sorry";
-        }
-    }
-
-    private String getGoodLuck() {
-        if (selectedLanguage.equalsIgnoreCase("id")) {
-            return "Semoga Beruntung";
-        } else if (selectedLanguage.equalsIgnoreCase("kr")) {
-            return "";
-        } else {
-            return "Good Luck!";
-        }
-    }
-
-    private String getHello() {
-        if (selectedLanguage.equalsIgnoreCase("id")) {
-            return "Halo";
-        } else if (selectedLanguage.equalsIgnoreCase("kr")) {
-            return "";
-        } else {
-            return "Hello!";
-        }
-    }
-
-    private String getGoodBye() {
-        if (selectedLanguage.equalsIgnoreCase("id")) {
-            return "Sampai Jumpa";
-        } else if (selectedLanguage.equalsIgnoreCase("kr")) {
-            return "";
-        } else {
-            return "Good Bye!";
         }
     }
 
