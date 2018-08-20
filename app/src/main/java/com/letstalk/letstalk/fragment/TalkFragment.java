@@ -70,6 +70,7 @@ public class TalkFragment extends Fragment {
     private byte[] readBuffer;
     private boolean bluetoothOn = false;
     private int readBufferPosition;
+    private String selectedLanguage = "en";
 
     private MaterialDialog waitDialog;
     private List<BluetoothDevice> newDevices = new ArrayList<>();
@@ -177,7 +178,7 @@ public class TalkFragment extends Fragment {
     }
 
     private void showMethod() {
-        MaterialDialog selectMethodDialog = new MaterialDialog
+        final MaterialDialog selectMethodDialog = new MaterialDialog
                 .Builder(Objects.requireNonNull(getActivity()))
                 .title(R.string.select_method)
                 .items(R.array.method_selection)
@@ -196,7 +197,24 @@ public class TalkFragment extends Fragment {
                 })
                 .positiveText(R.string.ok)
                 .build();
-        selectMethodDialog.show();
+
+        new MaterialDialog.Builder(getActivity()).items(R.array.language_selection)
+                .title("Please Select Language to Speak")
+                .itemsCallbackSingleChoice(-1, new MaterialDialog.ListCallbackSingleChoice() {
+                    @Override
+                    public boolean onSelection(MaterialDialog dialog, View itemView, int which, CharSequence text) {
+                        if (which == 0) {
+                            selectedLanguage = "id";
+                        } else if (which == 1) {
+                            selectedLanguage = "kr";
+                        } else {
+                            selectedLanguage = "en";
+                        }
+                        selectMethodDialog.show();
+                        return true;
+                    }
+                })
+                .show();
     }
 
     private void findNewDevice() {
@@ -314,8 +332,6 @@ public class TalkFragment extends Fragment {
             public void run() {
                 StringBuilder previousWord = new StringBuilder();
                 long lastWordTime = 0;
-                final StringBuilder textData = new StringBuilder();
-                final StringBuilder lang = new StringBuilder("en");
                 while (!Thread.currentThread().isInterrupted() && !stopWorker) {
                     try {
                         int bytesAvailable = mmInputStream.available();
@@ -327,45 +343,41 @@ public class TalkFragment extends Fragment {
                                 if (b == delimiter) {
                                     byte[] encodedBytes = new byte[readBufferPosition];
                                     System.arraycopy(readBuffer, 0, encodedBytes, 0, encodedBytes.length);
-
                                     String data = new String(encodedBytes, "US-ASCII");
-                                    /* Checking Data */
-                                    String[] datas = data.split(",");
-                                    if (datas.length == 1) {
-                                        lang.setLength(0);
-                                        textData.setLength(0);
-                                        lang.append("en");
-                                        textData.append(data);
-                                    } else if (datas.length == 2) {
-                                        lang.setLength(0);
-                                        textData.setLength(0);
-                                        lang.append(datas[0]);
-                                        textData.append(datas[1]);
-                                    }
-
                                     readBufferPosition = 0;
-                                    if (!previousWord.toString().equalsIgnoreCase(textData.toString())) {
-                                        previousWord.setLength(0);
-                                        previousWord.append(textData);
-                                        lastWordTime = System.currentTimeMillis();
-                                        handler.post(new Runnable() {
-                                            public void run() {
-                                                speak(lang.toString(),textData.toString(),false);
-                                            }
-                                        });
-                                    } else {
-                                        long currentTime = System.currentTimeMillis();
-                                        long duration = currentTime - lastWordTime;
-                                        if (duration >= 3000) { // 3000 ms = 3 s
+
+                                    final String convertedText = handleData(data);
+                                    if (convertedText != null) {
+                                        if (!previousWord.toString().equalsIgnoreCase(convertedText)) {
                                             previousWord.setLength(0);
-                                            previousWord.append(textData);
+                                            previousWord.append(convertedText);
                                             lastWordTime = System.currentTimeMillis();
                                             handler.post(new Runnable() {
                                                 public void run() {
-                                                    speak(lang.toString(), textData.toString(), false);
+                                                    speak(selectedLanguage, convertedText, false);
                                                 }
                                             });
+                                        } else {
+                                            long currentTime = System.currentTimeMillis();
+                                            long duration = currentTime - lastWordTime;
+                                            if (duration >= 3000) { // 3000 ms = 3 s
+                                                previousWord.setLength(0);
+                                                previousWord.append(convertedText);
+                                                lastWordTime = System.currentTimeMillis();
+                                                handler.post(new Runnable() {
+                                                    public void run() {
+                                                        speak(selectedLanguage, convertedText, false);
+                                                    }
+                                                });
+                                            }
                                         }
+                                    } else {
+                                        handler.post(new Runnable() {
+                                            @Override
+                                            public void run() {
+                                                Toast.makeText(getActivity(), "Unknown Input Format", Toast.LENGTH_SHORT).show();
+                                            }
+                                        });
                                     }
                                 } else {
                                     readBufferPosition = (readBufferPosition + 1) % 1024;
@@ -381,6 +393,61 @@ public class TalkFragment extends Fragment {
         });
 
         workerThread.start();
+    }
+
+    private String handleData(String data) {
+        int val = Integer.valueOf(data);
+        if (val == 1) {
+            return getSorry();
+        } else if (val == 2) {
+            return getGoodLuck();
+        } else if (val == 3) {
+            return getHello();
+        } else if (val == 4) {
+            return getGoodBye();
+        } else {
+            return null;
+        }
+    }
+
+    private String getSorry() {
+        if (selectedLanguage.equalsIgnoreCase("id")) {
+            return "Maaf";
+        } else if (selectedLanguage.equalsIgnoreCase("kr")) {
+            return "";
+        } else {
+            return "Sorry";
+        }
+    }
+
+    private String getGoodLuck() {
+        if (selectedLanguage.equalsIgnoreCase("id")) {
+            return "Semoga Beruntung";
+        } else if (selectedLanguage.equalsIgnoreCase("kr")) {
+            return "";
+        } else {
+            return "Good Luck!";
+        }
+    }
+
+    private String getHello() {
+        if (selectedLanguage.equalsIgnoreCase("id")) {
+            return "Halo";
+        } else if (selectedLanguage.equalsIgnoreCase("kr")) {
+            return "";
+        } else {
+            return "Hello!";
+        }
+    }
+
+    private String getGoodBye() {
+        if (selectedLanguage.equalsIgnoreCase("id")) {
+            return "Sampai Jumpa";
+        } else if (selectedLanguage.equalsIgnoreCase("kr")) {
+            return "";
+        } else {
+            return "Good Bye!";
+        }
     }
 
     private void speak(String lang, String text, boolean mode) {
@@ -434,7 +501,7 @@ public class TalkFragment extends Fragment {
                     @Override
                     public boolean onSelection(MaterialDialog dialog, View itemView, int which, CharSequence text) {
                         if (which == 0) {
-                            textSendListener.callSpeech("id", resultText,true);
+                            textSendListener.callSpeech("id", resultText, true);
                         } else if (which == 1) {
                             textSendListener.callSpeech("kr", resultText, true);
                         } else {
