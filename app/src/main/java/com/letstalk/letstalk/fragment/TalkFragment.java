@@ -432,16 +432,27 @@ public class TalkFragment extends Fragment {
     }
     
     private String displayCharValues(String s) {
-    StringBuilder sb = new StringBuilder();
-    for (char c : s.toCharArray()) {
-        sb.append((int) c).append(",");
+        StringBuilder sb = new StringBuilder();
+        for (char c : s.toCharArray()) {
+            sb.append((int) c).append(",");
+        }
+        return sb.toString();
     }
-    return sb.toString();
-}
+    
+    private String stripNonDigits(final CharSequence input){
+        final StringBuilder sb = new StringBuilder(input.length());
+        for(int i = 0; i < input.length(); i++){
+            final char c = input.charAt(i);
+            if(c > 47 && c < 58){
+                sb.append(c);
+            }
+        }
+        return sb.toString();
+    }
 
     private String handleData(String data) {
         try {
-            int val = Integer.parseInt(data.trim().replaceAll("\\D+",""), 10);
+            int val = Integer.parseInt(stripNonDigits(data));
             if (val >= 1 && val <= 4) {
                 return listOfWords.get(val - 1).get(selectedLanguage);
             } else {
