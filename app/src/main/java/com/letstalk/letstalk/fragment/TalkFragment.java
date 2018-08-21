@@ -410,6 +410,8 @@ public class TalkFragment extends Fragment {
                                             @Override
                                             public void run() {
                                                 Toast.makeText(getActivity(), "Unknown Input Format", Toast.LENGTH_SHORT).show();
+                                                // For debug only, after finish, commend the line below
+                                                Toast.makeText(getActivity(), displayCharValues(data), Toast.LENGTH_SHORT).show();
                                             }
                                         });
                                     }
@@ -428,10 +430,18 @@ public class TalkFragment extends Fragment {
 
         workerThread.start();
     }
+    
+    private String displayCharValues(String s) {
+    StringBuilder sb = new StringBuilder();
+    for (char c : s.toCharArray()) {
+        sb.append((int) c).append(",");
+    }
+    return sb.toString();
+}
 
     private String handleData(String data) {
         try {
-            int val = Integer.parseInt(data.trim().replaceAll("\\D+",""));
+            int val = Integer.parseInt(data.trim().replaceAll("\\D+",""), 10);
             if (val >= 1 && val <= 4) {
                 return listOfWords.get(val - 1).get(selectedLanguage);
             } else {
