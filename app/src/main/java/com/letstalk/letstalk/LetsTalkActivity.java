@@ -13,6 +13,7 @@ import android.util.Log;
 import android.widget.Toast;
 
 import com.letstalk.letstalk.adapter.LetsTalkFragmentAdapter;
+import com.letstalk.letstalk.fragment.TalkFragment;
 
 import java.util.Locale;
 
@@ -46,10 +47,31 @@ public class LetsTalkActivity extends AppCompatActivity implements TextToSpeech.
         mViewPager = findViewById(R.id.container);
         mViewPager.setAdapter(mSectionsPagerAdapter);
 
-        TabLayout tabLayout = findViewById(R.id.tabs);
+        final TabLayout tabLayout = findViewById(R.id.tabs);
 
         mViewPager.addOnPageChangeListener(new TabLayout.TabLayoutOnPageChangeListener(tabLayout));
         tabLayout.addOnTabSelectedListener(new TabLayout.ViewPagerOnTabSelectedListener(mViewPager));
+        mViewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+            @Override
+            public void onPageScrolled(int i, float v, int i1) {
+
+            }
+
+            @Override
+            public void onPageSelected(int i) {
+                if (i == 0) {
+                    TalkFragment talkFragment = (TalkFragment) mSectionsPagerAdapter.getItem(i+1);
+                    if (talkFragment != null) {
+                        talkFragment.stopReceive();
+                    }
+                }
+            }
+
+            @Override
+            public void onPageScrollStateChanged(int i) {
+
+            }
+        });
         tabLayout.setTabTextColors(Color.parseColor("#FFFFFF"), Color.parseColor("#616870"));
 
         tts = new TextToSpeech(this, this);

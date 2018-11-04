@@ -87,7 +87,7 @@ public class TalkFragment extends Fragment {
                 waitDialog.show();
                 newDevices.clear();
             } else if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action)) {
-                //discovery finishes, dismis progress dialog
+                //discovery finishes, dismiss progress dialog
                 waitDialog.dismiss();
                 showNewDevice();
             } else if (BluetoothDevice.ACTION_FOUND.equals(action)) {
@@ -345,14 +345,18 @@ public class TalkFragment extends Fragment {
 
     private void changeButtonToStop() {
         bluetoothOn = true;
-        button.setText(R.string.stop);
-        button.setBackgroundColor(Color.parseColor("#FF0000"));
+        if (button != null) {
+            button.setText(R.string.stop);
+            button.setBackgroundColor(Color.parseColor("#FF0000"));
+        }
     }
 
     private void changeButtonToStart() {
         bluetoothOn = false;
-        button.setText(R.string.button_talk);
-        button.setBackgroundColor(getResources().getColor(R.color.buttonColor));
+        if (button != null) {
+            button.setText(R.string.button_talk);
+            button.setBackgroundColor(getResources().getColor(R.color.buttonColor));
+        }
     }
 
     private void beginListenForData() {
@@ -377,7 +381,7 @@ public class TalkFragment extends Fragment {
                                 if (b == delimiter) {
                                     byte[] encodedBytes = new byte[readBufferPosition];
                                     System.arraycopy(readBuffer, 0, encodedBytes, 0, encodedBytes.length);
-                                    String data = new String(encodedBytes, "US-ASCII");
+                                    final String data = new String(encodedBytes, "US-ASCII");
                                     readBufferPosition = 0;
 
                                     final String convertedText = handleData(data);
@@ -485,7 +489,7 @@ public class TalkFragment extends Fragment {
         super.onDestroyView();
     }
 
-    private void stopReceive() {
+    public void stopReceive() {
         stopWorker = true;
         try {
             if (mmOutputStream != null) {
