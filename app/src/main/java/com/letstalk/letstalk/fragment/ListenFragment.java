@@ -11,7 +11,6 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.Toast;
 
-import com.afollestad.materialdialogs.DialogAction;
 import com.afollestad.materialdialogs.MaterialDialog;
 import com.letstalk.letstalk.R;
 import com.letstalk.letstalk.TextSendListener;
@@ -49,17 +48,6 @@ import retrofit2.converter.gson.GsonConverterFactory;
  */
 public class ListenFragment extends Fragment implements EasyPermissions.PermissionCallbacks {
 
-    @BindView(R.id.micButton)
-    ImageButton micButton;
-
-    @BindView(R.id.stopButton)
-    ImageButton stopButton;
-
-    @BindView(R.id.resultListenBox)
-    EditText resultBox;
-
-    @BindView(R.id.talkResultButton)
-    ImageButton speakButton;
 
     private int RC_AUDIO_RECORD = 10;
     private MediaRecorder mRecorder;
@@ -71,7 +59,15 @@ public class ListenFragment extends Fragment implements EasyPermissions.Permissi
 
     private final String URL_SERVER = "http://35.240.163.60:5000/";
 
-    Callback<SpeechToTextResponse> callbackResponse = new Callback<SpeechToTextResponse>() {
+    @BindView(R.id.micButton)
+    protected ImageButton micButton;
+    @BindView(R.id.stopButton)
+    protected ImageButton stopButton;
+    @BindView(R.id.resultListenBox)
+    protected EditText resultBox;
+    @BindView(R.id.talkResultButton)
+    protected ImageButton speakButton;
+    private Callback<SpeechToTextResponse> callbackResponse = new Callback<SpeechToTextResponse>() {
         @Override
         public void onResponse(@NonNull Call<SpeechToTextResponse> call, @NonNull Response<SpeechToTextResponse> response) {
             if (response.isSuccessful()) {
@@ -108,6 +104,7 @@ public class ListenFragment extends Fragment implements EasyPermissions.Permissi
             loading.dismiss();
         }
     };
+
 
     public ListenFragment() {
         // Required empty public constructor
@@ -167,18 +164,15 @@ public class ListenFragment extends Fragment implements EasyPermissions.Permissi
             new MaterialDialog.Builder(Objects.requireNonNull(getActivity()))
                     .title("Select Language to Speak")
                     .items(R.array.language_selection)
-                    .itemsCallbackSingleChoice(-1, new MaterialDialog.ListCallbackSingleChoice() {
-                        @Override
-                        public boolean onSelection(MaterialDialog dialog, View itemView, int which, CharSequence text) {
-                            if (which == 0) {
-                                textSendListener.callSpeech("id", resultText,true);
-                            } else if (which == 1) {
-                                textSendListener.callSpeech("kr", resultText, true);
-                            } else {
-                                textSendListener.callSpeech("en", resultText, true);
-                            }
-                            return true;
+                    .itemsCallbackSingleChoice(-1, (dialog, itemView, which, text) -> {
+                        if (which == 0) {
+                            textSendListener.callSpeech("id", resultText, true);
+                        } else if (which == 1) {
+                            textSendListener.callSpeech("kr", resultText, true);
+                        } else {
+                            textSendListener.callSpeech("en", resultText, true);
                         }
+                        return true;
                     })
                     .show();
         }
@@ -199,13 +193,10 @@ public class ListenFragment extends Fragment implements EasyPermissions.Permissi
                 .progress(true, 0)
                 .cancelable(true)
                 .canceledOnTouchOutside(true)
-                .onAny(new MaterialDialog.SingleButtonCallback() {
-                    @Override
-                    public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
-                        Toast.makeText(getActivity(), "Cancel Send Data", Toast.LENGTH_SHORT).show();
-                        if (resultTextFromSpeech != null && resultTextFromSpeech.isExecuted()) {
-                            resultTextFromSpeech.cancel();
-                        }
+                .onAny((dialog, which) -> {
+                    Toast.makeText(getActivity(), "Cancel Send Data", Toast.LENGTH_SHORT).show();
+                    if (resultTextFromSpeech != null && resultTextFromSpeech.isExecuted()) {
+                        resultTextFromSpeech.cancel();
                     }
                 })
                 .build();

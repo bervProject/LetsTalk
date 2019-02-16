@@ -19,7 +19,6 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.Toast;
 
-import com.afollestad.materialdialogs.DialogAction;
 import com.afollestad.materialdialogs.MaterialDialog;
 import com.letstalk.letstalk.R;
 import com.letstalk.letstalk.TextSendListener;
@@ -50,14 +49,6 @@ import butterknife.OnClick;
  */
 public class TalkFragment extends Fragment {
 
-    // View Handler
-    @BindView(R.id.buttonTalk)
-    Button button;
-    @BindView(R.id.resultTalkBox)
-    EditText textResult;
-    @BindView(R.id.deleteResultTalkButton)
-    ImageButton deleteButton;
-
     private TextSendListener textSendListener;
 
     // Bluetooth Section
@@ -77,7 +68,9 @@ public class TalkFragment extends Fragment {
 
     private MaterialDialog waitDialog;
     private List<BluetoothDevice> newDevices = new ArrayList<>();
-    private List<Map<String,String>> listOfWords = new ArrayList<>();
+    // View Handler
+    @BindView(R.id.buttonTalk)
+    protected Button button;
 
     private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
         public void onReceive(Context context, Intent intent) {
@@ -99,6 +92,11 @@ public class TalkFragment extends Fragment {
             }
         }
     };
+    @BindView(R.id.resultTalkBox)
+    protected EditText textResult;
+    @BindView(R.id.deleteResultTalkButton)
+    protected ImageButton deleteButton;
+    private List<Map<String, String>> listOfWords = new ArrayList<>();
 
     public TalkFragment() {
         // Required empty public constructor
@@ -132,22 +130,22 @@ public class TalkFragment extends Fragment {
 
     private void initWords() {
         listOfWords.clear();
-        Map<String,String> sorry = new HashMap<>();
-        sorry.put("id","Maafkan aku");
-        sorry.put("en","I'm sorry");
-        sorry.put("kr","미안 해요");
-        Map<String,String> goodLuck = new HashMap<>();
-        goodLuck.put("id","Semoga Beruntung");
-        goodLuck.put("en","Good Luck!");
-        goodLuck.put("kr","행운을 빕니다");
-        Map<String,String> hello = new HashMap<>();
-        hello.put("id","Halo");
-        hello.put("en","Hello");
-        hello.put("kr","안녕하세요");
-        Map<String,String> goodBye = new HashMap<>();
-        goodBye.put("id","Selamat Tinggal");
-        goodBye.put("en","Good Bye");
-        goodBye.put("kr","안녕");
+        Map<String, String> sorry = new HashMap<>();
+        sorry.put("id", "Maafkan aku");
+        sorry.put("en", "I'm sorry");
+        sorry.put("kr", "미안 해요");
+        Map<String, String> goodLuck = new HashMap<>();
+        goodLuck.put("id", "Semoga Beruntung");
+        goodLuck.put("en", "Good Luck!");
+        goodLuck.put("kr", "행운을 빕니다");
+        Map<String, String> hello = new HashMap<>();
+        hello.put("id", "Halo");
+        hello.put("en", "Hello");
+        hello.put("kr", "안녕하세요");
+        Map<String, String> goodBye = new HashMap<>();
+        goodBye.put("id", "Selamat Tinggal");
+        goodBye.put("en", "Good Bye");
+        goodBye.put("kr", "안녕");
         // Must in order when add, not in Initialization
         listOfWords.add(sorry); // 0
         listOfWords.add(goodLuck); // 1
@@ -164,13 +162,10 @@ public class TalkFragment extends Fragment {
         waitDialog = new MaterialDialog.Builder(Objects.requireNonNull(getActivity()))
                 .title(R.string.please_wait)
                 .content(R.string.finding_new_device)
-                .onAny(new MaterialDialog.SingleButtonCallback() {
-                    @Override
-                    public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
-                        if (btAdapter != null) {
-                            if (btAdapter.isDiscovering()) {
-                                btAdapter.cancelDiscovery();
-                            }
+                .onAny((dialog, which) -> {
+                    if (btAdapter != null) {
+                        if (btAdapter.isDiscovering()) {
+                            btAdapter.cancelDiscovery();
                         }
                     }
                 })
@@ -217,44 +212,38 @@ public class TalkFragment extends Fragment {
                 .Builder(Objects.requireNonNull(getActivity()))
                 .title(R.string.select_method)
                 .items(R.array.method_selection)
-                .itemsCallbackSingleChoice(-1, new MaterialDialog.ListCallbackSingleChoice() {
-                    @Override
-                    public boolean onSelection(MaterialDialog dialog, View view, int which, CharSequence text) {
-                        if (which == 0) {
-                            // Paired Device
-                            showPairedDevice();
-                        } else {
-                            // Find New Device
-                            findNewDevice();
-                        }
-                        return true;
+                .itemsCallbackSingleChoice(-1, (dialog, view, which, text) -> {
+                    if (which == 0) {
+                        // Paired Device
+                        showPairedDevice();
+                    } else {
+                        // Find New Device
+                        findNewDevice();
                     }
+                    return true;
                 })
                 .positiveText(R.string.ok)
                 .build();
 
         new MaterialDialog.Builder(getActivity()).items(R.array.language_selection)
                 .title("Please Select Language to Speak")
-                .itemsCallbackSingleChoice(-1, new MaterialDialog.ListCallbackSingleChoice() {
-                    @Override
-                    public boolean onSelection(MaterialDialog dialog, View itemView, int which, CharSequence text) {
-                        if (which == 0) {
-                            selectedLanguage = "id";
-                        } else if (which == 1) {
-                            selectedLanguage = "kr";
-                        } else {
-                            selectedLanguage = "en";
-                        }
-                        selectMethodDialog.show();
-                        return true;
+                .itemsCallbackSingleChoice(-1, (dialog, itemView, which, text) -> {
+                    if (which == 0) {
+                        selectedLanguage = "id";
+                    } else if (which == 1) {
+                        selectedLanguage = "kr";
+                    } else {
+                        selectedLanguage = "en";
                     }
+                    selectMethodDialog.show();
+                    return true;
                 })
                 .show();
     }
 
     private void findNewDevice() {
         if (btAdapter.isDiscovering()) {
-            // Bluetooth is already in modo discovery mode, we cancel to restart it again
+            // Bluetooth is already in mode discovery mode, we cancel to restart it again
             btAdapter.cancelDiscovery();
         }
         btAdapter.startDiscovery();
@@ -269,17 +258,14 @@ public class TalkFragment extends Fragment {
             MaterialDialog selectNewDeviceDialog = new MaterialDialog.Builder(Objects.requireNonNull(getActivity()))
                     .title(R.string.select_new_devices)
                     .items(newDevicesName)
-                    .itemsCallbackSingleChoice(-1, new MaterialDialog.ListCallbackSingleChoice() {
-                        @Override
-                        public boolean onSelection(MaterialDialog dialog, View itemView, int which, CharSequence text) {
-                            if (which >= newDevices.size()) {
-                                Toast.makeText(getActivity(), "False Reaction", Toast.LENGTH_SHORT).show();
-                            } else {
-                                btDevice = newDevices.get(which);
-                                startReceive();
-                            }
-                            return true;
+                    .itemsCallbackSingleChoice(-1, (dialog, itemView, which, text) -> {
+                        if (which >= newDevices.size()) {
+                            Toast.makeText(getActivity(), "False Reaction", Toast.LENGTH_SHORT).show();
+                        } else {
+                            btDevice = newDevices.get(which);
+                            startReceive();
                         }
+                        return true;
                     })
                     .build();
             selectNewDeviceDialog.show();
@@ -301,17 +287,14 @@ public class TalkFragment extends Fragment {
                     .Builder(Objects.requireNonNull(getActivity()))
                     .title(R.string.select_paired_device)
                     .items(devicesName)
-                    .itemsCallbackSingleChoice(-1, new MaterialDialog.ListCallbackSingleChoice() {
-                        @Override
-                        public boolean onSelection(MaterialDialog dialog, View itemView, int which, CharSequence text) {
-                            if (which >= pairedDevices.size()) {
-                                Toast.makeText(getActivity(), "False Reaction", Toast.LENGTH_SHORT).show();
-                            } else {
-                                btDevice = devices.get(which);
-                                startReceive();
-                            }
-                            return true;
+                    .itemsCallbackSingleChoice(-1, (dialog, itemView, which, text) -> {
+                        if (which >= pairedDevices.size()) {
+                            Toast.makeText(getActivity(), "False Reaction", Toast.LENGTH_SHORT).show();
+                        } else {
+                            btDevice = devices.get(which);
+                            startReceive();
                         }
+                        return true;
                     })
                     .build();
             selectPairedDeviceDialog.show();
@@ -391,11 +374,7 @@ public class TalkFragment extends Fragment {
                                             previousWord.setLength(0);
                                             previousWord.append(convertedText);
                                             lastWordTime = System.currentTimeMillis();
-                                            handler.post(new Runnable() {
-                                                public void run() {
-                                                    speak(selectedLanguage, convertedText, false);
-                                                }
-                                            });
+                                            handler.post(() -> speak(selectedLanguage, convertedText, false));
                                         } else {
                                             long currentTime = System.currentTimeMillis();
                                             long duration = currentTime - lastWordTime;
@@ -403,21 +382,14 @@ public class TalkFragment extends Fragment {
                                                 previousWord.setLength(0);
                                                 previousWord.append(convertedText);
                                                 lastWordTime = System.currentTimeMillis();
-                                                handler.post(new Runnable() {
-                                                    public void run() {
-                                                        speak(selectedLanguage, convertedText, false);
-                                                    }
-                                                });
+                                                handler.post(() -> speak(selectedLanguage, convertedText, false));
                                             }
                                         }
                                     } else {
-                                        handler.post(new Runnable() {
-                                            @Override
-                                            public void run() {
-                                                Toast.makeText(getActivity(), "Unknown Input Format", Toast.LENGTH_SHORT).show();
-                                                // For debug only, after finish, commend the line below
-                                                Toast.makeText(getActivity(), displayCharValues(data), Toast.LENGTH_SHORT).show();
-                                            }
+                                        handler.post(() -> {
+                                            Toast.makeText(getActivity(), "Unknown Input Format", Toast.LENGTH_SHORT).show();
+                                            // For debug only, after finish, commend the line below
+                                            Toast.makeText(getActivity(), displayCharValues(data), Toast.LENGTH_SHORT).show();
                                         });
                                     }
                                 } else {
@@ -435,7 +407,7 @@ public class TalkFragment extends Fragment {
 
         workerThread.start();
     }
-    
+
     private String displayCharValues(String s) {
         StringBuilder sb = new StringBuilder();
         for (char c : s.toCharArray()) {
@@ -443,12 +415,12 @@ public class TalkFragment extends Fragment {
         }
         return sb.toString();
     }
-    
-    private String stripNonDigits(final CharSequence input){
+
+    private String stripNonDigits(final CharSequence input) {
         final StringBuilder sb = new StringBuilder(input.length());
-        for(int i = 0; i < input.length(); i++){
+        for (int i = 0; i < input.length(); i++) {
             final char c = input.charAt(i);
-            if(c > 47 && c < 58){
+            if (c > 47 && c < 58) {
                 sb.append(c);
             }
         }
@@ -515,18 +487,15 @@ public class TalkFragment extends Fragment {
         new MaterialDialog.Builder(Objects.requireNonNull(getActivity()))
                 .title("Select Language to Speak")
                 .items(R.array.language_selection)
-                .itemsCallbackSingleChoice(-1, new MaterialDialog.ListCallbackSingleChoice() {
-                    @Override
-                    public boolean onSelection(MaterialDialog dialog, View itemView, int which, CharSequence text) {
-                        if (which == 0) {
-                            textSendListener.callSpeech("id", resultText, true);
-                        } else if (which == 1) {
-                            textSendListener.callSpeech("kr", resultText, true);
-                        } else {
-                            textSendListener.callSpeech("en", resultText, true);
-                        }
-                        return true;
+                .itemsCallbackSingleChoice(-1, (dialog, itemView, which, text) -> {
+                    if (which == 0) {
+                        textSendListener.callSpeech("id", resultText, true);
+                    } else if (which == 1) {
+                        textSendListener.callSpeech("kr", resultText, true);
+                    } else {
+                        textSendListener.callSpeech("en", resultText, true);
                     }
+                    return true;
                 })
                 .show();
     }

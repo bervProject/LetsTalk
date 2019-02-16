@@ -19,7 +19,7 @@ public class WelcomeActivity extends AppCompatActivity {
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
         setContentView(R.layout.activity_welcome);
-        timer = new CountDownTimer(800,1) {
+        timer = new CountDownTimer(800, 1) {
             @Override
             public void onTick(long l) {
 
@@ -42,7 +42,7 @@ public class WelcomeActivity extends AppCompatActivity {
     @Override
     protected void onPause() {
         super.onPause();
-        if (timer!= null)
+        if (timer != null)
             timer.cancel();
     }
 

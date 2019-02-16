@@ -3,6 +3,7 @@ package com.letstalk.letstalk.adapter;
 import com.letstalk.letstalk.fragment.ListenFragment;
 import com.letstalk.letstalk.fragment.TalkFragment;
 
+import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentPagerAdapter;
@@ -13,11 +14,12 @@ public class LetsTalkFragmentAdapter extends FragmentPagerAdapter {
         super(fm);
     }
 
+    @NonNull
     @Override
     public Fragment getItem(int position) {
-        if (position == 0 ) {
+        if (position == 0) {
             return ListenFragment.newInstance();
-        } else  {
+        } else {
             return TalkFragment.newInstance();
         }
     }

@@ -19,6 +19,8 @@ import androidx.fragment.app.FragmentPagerAdapter;
 import androidx.fragment.app.FragmentStatePagerAdapter;
 import androidx.viewpager.widget.PagerAdapter;
 import androidx.viewpager.widget.ViewPager;
+import butterknife.BindView;
+import butterknife.ButterKnife;
 
 public class LetsTalkActivity extends AppCompatActivity implements TextToSpeech.OnInitListener, TextSendListener {
 
@@ -31,27 +33,24 @@ public class LetsTalkActivity extends AppCompatActivity implements TextToSpeech.
      * {@link FragmentStatePagerAdapter}.
      */
     private LetsTalkFragmentAdapter mSectionsPagerAdapter;
-
     /**
      * The {@link ViewPager} that will host the section contents.
      */
-    private ViewPager mViewPager;
+    @BindView(R.id.container)
+    protected ViewPager mViewPager;
+    @BindView(R.id.tabs)
+    protected TabLayout tabLayout;
     private TextToSpeech tts;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_lets_talk);
+        ButterKnife.bind(this);
         // Create the adapter that will return a fragment for each of the three
         // primary sections of the activity.
         mSectionsPagerAdapter = new LetsTalkFragmentAdapter(getSupportFragmentManager());
-
-        // Set up the ViewPager with the sections adapter.
-        mViewPager = findViewById(R.id.container);
         mViewPager.setAdapter(mSectionsPagerAdapter);
-
-        final TabLayout tabLayout = findViewById(R.id.tabs);
-
         mViewPager.addOnPageChangeListener(new TabLayout.TabLayoutOnPageChangeListener(tabLayout));
         tabLayout.addOnTabSelectedListener(new TabLayout.ViewPagerOnTabSelectedListener(mViewPager));
         mViewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
@@ -63,7 +62,7 @@ public class LetsTalkActivity extends AppCompatActivity implements TextToSpeech.
             @Override
             public void onPageSelected(int i) {
                 if (i == 0) {
-                    TalkFragment talkFragment = (TalkFragment) mSectionsPagerAdapter.getItem(i+1);
+                    TalkFragment talkFragment = (TalkFragment) mSectionsPagerAdapter.getItem(i + 1);
                     if (talkFragment != null) {
                         talkFragment.stopReceive();
                     }
