@@ -1,11 +1,11 @@
 package com.letstalk.letstalk.adapter;
 
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentPagerAdapter;
-
 import com.letstalk.letstalk.fragment.ListenFragment;
 import com.letstalk.letstalk.fragment.TalkFragment;
+
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentPagerAdapter;
 
 public class LetsTalkFragmentAdapter extends FragmentPagerAdapter {
 
