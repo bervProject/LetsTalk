@@ -7,13 +7,6 @@ import android.os.Bundle
 import android.speech.tts.TextToSpeech
 import android.util.Log
 import android.widget.Toast
-
-import com.google.android.material.tabs.TabLayout
-import com.letstalk.letstalk.adapter.LetsTalkFragmentAdapter
-import com.letstalk.letstalk.fragment.TalkFragment
-
-import java.util.Locale
-
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.FragmentPagerAdapter
 import androidx.fragment.app.FragmentStatePagerAdapter
@@ -21,6 +14,10 @@ import androidx.viewpager.widget.PagerAdapter
 import androidx.viewpager.widget.ViewPager
 import butterknife.BindView
 import butterknife.ButterKnife
+import com.google.android.material.tabs.TabLayout
+import com.letstalk.letstalk.adapter.LetsTalkFragmentAdapter
+import com.letstalk.letstalk.fragment.TalkFragment
+import java.util.*
 
 class LetsTalkActivity : AppCompatActivity(), TextToSpeech.OnInitListener, TextSendListener {
 
@@ -81,7 +78,7 @@ class LetsTalkActivity : AppCompatActivity(), TextToSpeech.OnInitListener, TextS
         if (am.ringerMode == AudioManager.RINGER_MODE_NORMAL) {
             // Default English
             tts!!.language = Locale.ENGLISH
-            tts!!.speak(text, TextToSpeech.QUEUE_ADD, null) // Queue
+            tts!!.speak(text, TextToSpeech.QUEUE_ADD, null, null) // Queue
         } else {
             Toast.makeText(this, "Please turn off silenced/vibrate mode. Can't play the audio.", Toast.LENGTH_LONG).show()
         }
@@ -93,10 +90,9 @@ class LetsTalkActivity : AppCompatActivity(), TextToSpeech.OnInitListener, TextS
             // Default English
             tts!!.language = Locale.ENGLISH
             if (flushMode) {
-                tts!!.speak(text, TextToSpeech.QUEUE_FLUSH, null) // Queue Flush
+                tts!!.speak(text, TextToSpeech.QUEUE_FLUSH, null, null)
             } else {
-
-                tts!!.speak(text, TextToSpeech.QUEUE_ADD, null) // Queue
+                tts!!.speak(text, TextToSpeech.QUEUE_ADD, null, null)
             }
         } else {
             Toast.makeText(this, "Please turn off silenced/vibrate mode. Can't play the audio.", Toast.LENGTH_LONG).show()
@@ -106,26 +102,22 @@ class LetsTalkActivity : AppCompatActivity(), TextToSpeech.OnInitListener, TextS
     override fun callSpeech(language: String, text: String, flushMode: Boolean) {
         val am = getSystemService(Context.AUDIO_SERVICE) as AudioManager
         if (am.ringerMode == AudioManager.RINGER_MODE_NORMAL) {
-            val mode: Int
-            if (flushMode) {
-                mode = TextToSpeech.QUEUE_FLUSH
+            val mode: Int = if (flushMode) {
+                TextToSpeech.QUEUE_FLUSH
             } else {
-                mode = TextToSpeech.QUEUE_ADD
+                TextToSpeech.QUEUE_ADD
             }
-            val locale: Locale
-            if (language.equals("id", ignoreCase = true)) {
-                locale = Locale("id", "ID")
-            } else if (language.equals("kr", ignoreCase = true)) {
-                locale = Locale.KOREAN
-            } else {
-                locale = Locale.ENGLISH
+            val locale: Locale = when {
+                language.equals("id", ignoreCase = true) -> Locale("id", "ID")
+                language.equals("kr", ignoreCase = true) -> Locale.KOREAN
+                else -> Locale.ENGLISH
             }
             val result = tts!!.setLanguage(locale)
             if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
                 Log.e("TTS", "This Language is not supported")
                 Toast.makeText(this, "This Language is not supported", Toast.LENGTH_SHORT).show()
             } else {
-                tts!!.speak(text, mode, null)
+                tts!!.speak(text, mode, null, null)
             }
         } else {
             Toast.makeText(this, "Please turn off silenced/vibrate mode. Can't play the audio.", Toast.LENGTH_LONG).show()

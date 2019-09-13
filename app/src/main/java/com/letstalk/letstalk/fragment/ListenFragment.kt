@@ -11,22 +11,17 @@ import android.view.ViewGroup
 import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.Toast
-
+import androidx.fragment.app.Fragment
+import butterknife.BindView
+import butterknife.ButterKnife
+import butterknife.OnClick
 import com.afollestad.materialdialogs.MaterialDialog
+import com.afollestad.materialdialogs.list.listItemsSingleChoice
 import com.letstalk.letstalk.R
 import com.letstalk.letstalk.TextSendListener
 import com.letstalk.letstalk.api.SpeechToText
 import com.letstalk.letstalk.model.SpeechToTextResponse
 import com.readystatesoftware.chuck.ChuckInterceptor
-
-import java.io.File
-import java.io.IOException
-import java.util.Locale
-import androidx.fragment.app.Fragment
-import butterknife.BindView
-import butterknife.ButterKnife
-import butterknife.OnClick
-import com.afollestad.materialdialogs.list.listItemsSingleChoice
 import dmax.dialog.SpotsDialog
 import okhttp3.MediaType
 import okhttp3.MultipartBody
@@ -38,6 +33,9 @@ import retrofit2.Callback
 import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import java.io.File
+import java.io.IOException
+import java.util.*
 
 
 /**
@@ -48,7 +46,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 class ListenFragment : Fragment(), EasyPermissions.PermissionCallbacks {
 
 
-    private val RC_AUDIO_RECORD = 10
+    private val rcAudioRecord = 10
     private var mRecorder: MediaRecorder? = null
     private var newFilePath: String? = null
     private var textSendListener: TextSendListener? = null
@@ -56,7 +54,7 @@ class ListenFragment : Fragment(), EasyPermissions.PermissionCallbacks {
     private var loading: AlertDialog? = null
     private var resultTextFromSpeech: Call<SpeechToTextResponse>? = null
 
-    private val URL_SERVER = "http://35.240.163.60:5000/"
+    private val urlServer = "http://35.240.163.60:5000/"
 
     @BindView(R.id.micButton)
     @JvmField
@@ -128,7 +126,7 @@ class ListenFragment : Fragment(), EasyPermissions.PermissionCallbacks {
         } else {
             // Do not have permissions, request them now
             EasyPermissions.requestPermissions(this, getString(R.string.audio_record),
-                    RC_AUDIO_RECORD, *perms)
+                    rcAudioRecord, *perms)
         }
     }
 
@@ -216,7 +214,7 @@ class ListenFragment : Fragment(), EasyPermissions.PermissionCallbacks {
     }
 
     override fun onPermissionsGranted(requestCode: Int, perms: List<String>) {
-        if (requestCode == RC_AUDIO_RECORD) {
+        if (requestCode == rcAudioRecord) {
             recordAudio()
         }
     }
@@ -257,7 +255,7 @@ class ListenFragment : Fragment(), EasyPermissions.PermissionCallbacks {
                 .addInterceptor(ChuckInterceptor(this.context!!.applicationContext))
                 .build()
         val retrofit = Retrofit.Builder()
-                .baseUrl(URL_SERVER)
+                .baseUrl(urlServer)
                 .client(client)
                 .addConverterFactory(GsonConverterFactory.create())
                 .build()

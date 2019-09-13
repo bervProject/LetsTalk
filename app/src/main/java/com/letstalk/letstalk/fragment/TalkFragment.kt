@@ -19,24 +19,20 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.Toast
-
-import com.afollestad.materialdialogs.MaterialDialog
-import com.letstalk.letstalk.R
-import com.letstalk.letstalk.TextSendListener
-
-import java.io.IOException
-import java.io.InputStream
-import java.io.OutputStream
-import java.nio.charset.StandardCharsets
-import java.util.ArrayList
-import java.util.HashMap
-import java.util.UUID
 import androidx.fragment.app.Fragment
 import butterknife.BindView
 import butterknife.ButterKnife
 import butterknife.OnClick
+import com.afollestad.materialdialogs.MaterialDialog
 import com.afollestad.materialdialogs.list.listItemsSingleChoice
+import com.letstalk.letstalk.R
+import com.letstalk.letstalk.TextSendListener
 import dmax.dialog.SpotsDialog
+import java.io.IOException
+import java.io.InputStream
+import java.io.OutputStream
+import java.nio.charset.StandardCharsets
+import java.util.*
 
 /**
  * A simple [Fragment] subclass.
@@ -46,12 +42,8 @@ import dmax.dialog.SpotsDialog
 class TalkFragment : Fragment() {
 
     private var textSendListener: TextSendListener? = null
-
     // Bluetooth Section
     private var btAdapter: BluetoothAdapter? = null
-    private val START_BLUETOOTH_RC = 10
-    // TODO: FILL MAC ADDRESS OF ARDUINO HERE
-    private val address = ""
     private var btDevice: BluetoothDevice? = null
     private var mmSocket: BluetoothSocket? = null
     private var mmOutputStream: OutputStream? = null
@@ -61,35 +53,15 @@ class TalkFragment : Fragment() {
     private var bluetoothOn = false
     private var readBufferPosition: Int = 0
     private var selectedLanguage = "en"
-
     private var waitDialog: AlertDialog? = null
+
     private val newDevices = ArrayList<BluetoothDevice>()
+    private val startBluetoothRc = 10
+    private val listOfWords = ArrayList<Map<String, String>>()
     // View Handler
     @BindView(R.id.buttonTalk)
     @JvmField
     var button: Button? = null
-
-    private val mReceiver = object : BroadcastReceiver() {
-        override fun onReceive(context: Context, intent: Intent) {
-            val action = intent.action
-
-            if (BluetoothAdapter.ACTION_DISCOVERY_STARTED == action) {
-                //discovery starts, we can show progress dialog or perform other tasks
-                waitDialog!!.show()
-                newDevices.clear()
-            } else if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED == action) {
-                //discovery finishes, dismiss progress dialog
-                waitDialog!!.dismiss()
-                showNewDevice()
-            } else if (BluetoothDevice.ACTION_FOUND == action) {
-                //bluetooth device found
-                val device = intent.getParcelableExtra<BluetoothDevice>(BluetoothDevice.EXTRA_DEVICE)
-                newDevices.add(device)
-                Toast.makeText(context, "Find: " + device!!.name + ", " + device.address, Toast.LENGTH_SHORT).show()
-            }
-        }
-    }
-
     @BindView(R.id.resultTalkBox)
     @JvmField
     var textResult: EditText? = null
@@ -97,7 +69,33 @@ class TalkFragment : Fragment() {
     @JvmField
     var deleteButton: ImageButton? = null
 
-    private val listOfWords = ArrayList<Map<String, String>>()
+
+    private val mReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            when (intent.action) {
+                BluetoothAdapter.ACTION_DISCOVERY_STARTED -> {
+                    //discovery starts, we can show progress dialog or perform other tasks
+                    waitDialog!!.show()
+                    newDevices.clear()
+                }
+                BluetoothAdapter.ACTION_DISCOVERY_FINISHED -> {
+                    //discovery finishes, dismiss progress dialog
+                    waitDialog!!.dismiss()
+                    showNewDevice()
+                }
+                BluetoothDevice.ACTION_FOUND -> {
+                    //bluetooth device found
+                    val device = intent.getParcelableExtra<BluetoothDevice>(BluetoothDevice.EXTRA_DEVICE)
+                    if (device != null) {
+                        newDevices.add(device)
+                        Toast.makeText(context, "Find: " + device.name + ", " + device.address, Toast.LENGTH_SHORT).show()
+                    } else {
+                        Toast.makeText(context, "Failed to find device", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+        }
+    }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
@@ -176,7 +174,7 @@ class TalkFragment : Fragment() {
         } else {
             if (!btAdapter!!.isEnabled) {
                 val enableBtIntent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
-                startActivityForResult(enableBtIntent, START_BLUETOOTH_RC)
+                startActivityForResult(enableBtIntent, startBluetoothRc)
             } else {
                 showMethod()
             }
@@ -184,7 +182,7 @@ class TalkFragment : Fragment() {
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        if (requestCode == START_BLUETOOTH_RC) {
+        if (requestCode == startBluetoothRc) {
             if (resultCode == Activity.RESULT_OK) {
                 showMethod()
             } else {
@@ -410,13 +408,13 @@ class TalkFragment : Fragment() {
     }
 
     private fun speak(lang: String, text: String, mode: Boolean) {
-        var text = text
-        if (!text.contains("\n")) {
-            text = text + "\n"
+        var resultText = text
+        if (!resultText.contains("\n")) {
+            resultText += "\n"
         }
-        textResult!!.append(text) // append to fill box without erase another text before, change to setText if only want one word/sentence
+        textResult!!.append(resultText) // append to fill box without erase another text before, change to setText if only want one word/sentence
         if (textSendListener != null) {
-            textSendListener!!.callSpeech(lang, text, mode)
+            textSendListener!!.callSpeech(lang, resultText, mode)
         }
     }
 
