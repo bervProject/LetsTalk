@@ -13,6 +13,9 @@ import retrofit2.http.Part
  * Interface to http call
  */
 interface SpeechToText {
+    /**
+     * Function to call api and get text from audio
+     */
     @Multipart
     @POST("upload_file")
     fun speechToText(@Part audio: MultipartBody.Part): Call<SpeechToTextResponse>
