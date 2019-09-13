@@ -53,50 +53,50 @@ class LetsTalkActivity : AppCompatActivity(), TextToSpeech.OnInitListener, TextS
         // Create the adapter that will return a fragment for each of the three
         // primary sections of the activity.
         mSectionsPagerAdapter = LetsTalkFragmentAdapter(supportFragmentManager)
-        mViewPager!!.adapter = mSectionsPagerAdapter
-        mViewPager!!.addOnPageChangeListener(TabLayout.TabLayoutOnPageChangeListener(tabLayout))
-        tabLayout!!.addOnTabSelectedListener(TabLayout.ViewPagerOnTabSelectedListener(mViewPager))
-        mViewPager!!.addOnPageChangeListener(object : ViewPager.OnPageChangeListener {
+        mViewPager?.adapter = mSectionsPagerAdapter
+        mViewPager?.addOnPageChangeListener(TabLayout.TabLayoutOnPageChangeListener(tabLayout))
+        tabLayout?.addOnTabSelectedListener(TabLayout.ViewPagerOnTabSelectedListener(mViewPager))
+        mViewPager?.addOnPageChangeListener(object : ViewPager.OnPageChangeListener {
             override fun onPageScrolled(i: Int, v: Float, i1: Int) {
-
+                Log.d("LetsTalkActivity", "Scroll to page: $i")
             }
 
             override fun onPageSelected(i: Int) {
                 if (i == 0) {
-                    val talkFragment = mSectionsPagerAdapter!!.getItem(i + 1) as TalkFragment
-                    talkFragment.stopReceive()
+                    val talkFragment = mSectionsPagerAdapter?.getItem(i + 1) as TalkFragment?
+                    talkFragment?.stopReceive()
                 }
             }
 
             override fun onPageScrollStateChanged(i: Int) {
-
+                Log.d("LetsTalkActivity", "State page: $i")
             }
         })
-        tabLayout!!.setTabTextColors(Color.parseColor("#FFFFFF"), Color.parseColor("#616870"))
+        tabLayout?.setTabTextColors(Color.parseColor("#FFFFFF"), Color.parseColor("#616870"))
 
         tts = TextToSpeech(this, this)
     }
 
     override fun callSpeech(text: String) {
-        val am = getSystemService(Context.AUDIO_SERVICE) as AudioManager
-        if (am.ringerMode == AudioManager.RINGER_MODE_NORMAL) {
+        val am = getSystemService(Context.AUDIO_SERVICE) as AudioManager?
+        if (am?.ringerMode == AudioManager.RINGER_MODE_NORMAL) {
             // Default English
-            tts!!.language = Locale.ENGLISH
-            tts!!.speak(text, TextToSpeech.QUEUE_ADD, null, null) // Queue
+            tts?.language = Locale.ENGLISH
+            tts?.speak(text, TextToSpeech.QUEUE_ADD, null, null) // Queue
         } else {
             Toast.makeText(this, "Please turn off silenced/vibrate mode. Can't play the audio.", Toast.LENGTH_LONG).show()
         }
     }
 
     override fun callSpeech(text: String, flushMode: Boolean) {
-        val am = getSystemService(Context.AUDIO_SERVICE) as AudioManager
-        if (am.ringerMode == AudioManager.RINGER_MODE_NORMAL) {
+        val am = getSystemService(Context.AUDIO_SERVICE) as AudioManager?
+        if (am?.ringerMode == AudioManager.RINGER_MODE_NORMAL) {
             // Default English
-            tts!!.language = Locale.ENGLISH
+            tts?.language = Locale.ENGLISH
             if (flushMode) {
-                tts!!.speak(text, TextToSpeech.QUEUE_FLUSH, null, null)
+                tts?.speak(text, TextToSpeech.QUEUE_FLUSH, null, null)
             } else {
-                tts!!.speak(text, TextToSpeech.QUEUE_ADD, null, null)
+                tts?.speak(text, TextToSpeech.QUEUE_ADD, null, null)
             }
         } else {
             Toast.makeText(this, "Please turn off silenced/vibrate mode. Can't play the audio.", Toast.LENGTH_LONG).show()
@@ -104,8 +104,8 @@ class LetsTalkActivity : AppCompatActivity(), TextToSpeech.OnInitListener, TextS
     }
 
     override fun callSpeech(language: String, text: String, flushMode: Boolean) {
-        val am = getSystemService(Context.AUDIO_SERVICE) as AudioManager
-        if (am.ringerMode == AudioManager.RINGER_MODE_NORMAL) {
+        val am = getSystemService(Context.AUDIO_SERVICE) as AudioManager?
+        if (am?.ringerMode == AudioManager.RINGER_MODE_NORMAL) {
             val mode: Int = if (flushMode) {
                 TextToSpeech.QUEUE_FLUSH
             } else {
@@ -116,12 +116,12 @@ class LetsTalkActivity : AppCompatActivity(), TextToSpeech.OnInitListener, TextS
                 language.equals("kr", ignoreCase = true) -> Locale.KOREAN
                 else -> Locale.ENGLISH
             }
-            val result = tts!!.setLanguage(locale)
+            val result = tts?.setLanguage(locale)
             if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
                 Log.e("TTS", "This Language is not supported")
                 Toast.makeText(this, "This Language is not supported", Toast.LENGTH_SHORT).show()
             } else {
-                tts!!.speak(text, mode, null, null)
+                tts?.speak(text, mode, null, null)
             }
         } else {
             Toast.makeText(this, "Please turn off silenced/vibrate mode. Can't play the audio.", Toast.LENGTH_LONG).show()
@@ -130,8 +130,8 @@ class LetsTalkActivity : AppCompatActivity(), TextToSpeech.OnInitListener, TextS
 
     override fun onInit(i: Int) {
         if (i == TextToSpeech.SUCCESS) {
-            tts!!.setSpeechRate(0.5f)
-            val result = tts!!.setLanguage(Locale("id", "ID"))
+            tts?.setSpeechRate(0.5f)
+            val result = tts?.setLanguage(Locale("id", "ID"))
             // int result = tts.setLanguage(Locale.ENGLISH);
             if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
                 Log.e("TTS", "This Language is not supported")
@@ -148,8 +148,8 @@ class LetsTalkActivity : AppCompatActivity(), TextToSpeech.OnInitListener, TextS
 
     public override fun onDestroy() {
         if (tts != null) {
-            tts!!.stop()
-            tts!!.shutdown()
+            tts?.stop()
+            tts?.shutdown()
         }
         super.onDestroy()
     }
