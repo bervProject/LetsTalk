@@ -19,6 +19,10 @@ import com.letstalk.letstalk.adapter.LetsTalkFragmentAdapter
 import com.letstalk.letstalk.fragment.TalkFragment
 import java.util.*
 
+/**
+ * LetsTalkActivity
+ * Main activity of this apps
+ */
 class LetsTalkActivity : AppCompatActivity(), TextToSpeech.OnInitListener, TextSendListener {
 
     /**

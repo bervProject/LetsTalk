@@ -8,6 +8,10 @@ import retrofit2.http.Multipart
 import retrofit2.http.POST
 import retrofit2.http.Part
 
+/**
+ * SpeechToText
+ * Interface to http call
+ */
 interface SpeechToText {
     @Multipart
     @POST("upload_file")

@@ -1,5 +1,9 @@
 package com.letstalk.letstalk
 
+/**
+ * TextSendListener
+ * Interface to call speech from fragment into activity
+ */
 interface TextSendListener {
     fun callSpeech(text: String)
 

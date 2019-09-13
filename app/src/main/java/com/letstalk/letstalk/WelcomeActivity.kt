@@ -8,6 +8,10 @@ import android.view.WindowManager
 
 import androidx.appcompat.app.AppCompatActivity
 
+/**
+ * WelcomeActivity
+ * First page/landing page
+ */
 class WelcomeActivity : AppCompatActivity() {
 
     private var timer: CountDownTimer? = null
