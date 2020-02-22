@@ -35,7 +35,7 @@ dependencies {
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
     implementation 'com.jakewharton:butterknife:10.2.1'
     implementation 'pub.devrel:easypermissions:3.0.0'
-    implementation 'com.afollestad.material-dialogs:core:3.2.1'
+    implementation 'com.afollestad.material-dialogs:core:3.3.0'
     implementation 'com.github.d-max:spots-dialog:1.1@aar'
     debugImplementation 'com.readystatesoftware.chuck:library:1.1.0'
     releaseImplementation 'com.readystatesoftware.chuck:library-no-op:1.1.0'
